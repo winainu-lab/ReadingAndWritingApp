@@ -546,6 +546,7 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
 .landing-resources-button:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(48,23,3,.34); }
 .landing-login { color: #3f260b; background: linear-gradient(135deg, #ffe894, #d9a52d); border: 1px solid #fff0ae; box-shadow: 0 12px 28px rgba(56,28,4,.28); }
 .landing-register { color: #fff6dc; background: rgba(64,28,4,.36); border: 1px solid rgba(255,234,169,.4); backdrop-filter: blur(8px); }
+.landing-install { color: #573514; background: #fff1bd; border: 1px solid #f7d76d; box-shadow: 0 7px 20px rgba(56,25,4,.16); }
 
 .auth-modal-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(24,12,5,.72); backdrop-filter: blur(12px); animation: modalFade .22s ease both; }
 .auth-modal { position: relative; width: min(530px, 100%); max-height: calc(100dvh - 40px); overflow-y: auto; padding: 30px; color: var(--ink); background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,250,235,.98)); border: 1px solid #e9c968; border-radius: 24px; box-shadow: 0 38px 120px rgba(0,0,0,.46), inset 0 1px rgba(255,255,255,.9); animation: modalRise .4s cubic-bezier(.2,.8,.2,1) both; }
@@ -555,7 +556,7 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
 .auth-modal__brand p { position: relative; z-index: 1; margin: 0; color: #6f4816; font-weight: 700; line-height: 1.35; text-align: center; }
 .auth-modal__logo { width: 58px; height: 58px; display: grid; place-items: center; overflow: hidden; margin-bottom: 18px; padding: 8px; color: #573514; background: linear-gradient(135deg, #fff3bb, #d4a134); border-radius: 50%; }
 .auth-modal__logo img { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; object-position: center; }
-.auth-modal__logo--uploaded { width: min(120px, 40vw); height: 106px; margin-bottom: 26px; padding: 0; background: transparent; border-radius: 0; }
+.auth-modal__logo--uploaded { width: min(120px, 40vw); height: 106px; overflow: visible; margin-bottom: 26px; padding: 0; background: transparent; border-radius: 0; }
 .auth-modal__logo--uploaded img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
 .auth-modal .auth-card__heading { text-align: center; }
 .auth-modal .auth-tabs { margin-bottom: 20px; }

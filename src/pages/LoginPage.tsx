@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, BookOpenCheck, BookOpenText, Eye, EyeOff, LogIn, MapPinned, School, ShieldCheck, UserPlus, X } from 'lucide-react'
+import { ArrowRight, BookOpenCheck, BookOpenText, Download, Eye, EyeOff, LogIn, MapPinned, School, ShieldCheck, UserPlus, X } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
@@ -11,6 +11,7 @@ import { supabase } from '../lib/supabase'
 
 type AuthMode = 'login' | 'register' | null
 type RegistrationRole = 'teacher' | 'supervisor'
+type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> }
 
 export function LoginPage() {
   const { signIn, signUp } = useAuth()
@@ -20,6 +21,7 @@ export function LoginPage() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
   const [registrationRole, setRegistrationRole] = useState<RegistrationRole>('teacher')
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null)
   const logoUrl = getBrandLogoUrl(settings.logo_path)
 
   const schools = useQuery({
@@ -39,12 +41,26 @@ export function LoginPage() {
     window.addEventListener('keydown', closeOnEscape)
     return () => window.removeEventListener('keydown', closeOnEscape)
   }, [mode])
+  useEffect(() => {
+    const onBeforeInstallPrompt = (event: Event) => { event.preventDefault(); setInstallPrompt(event as InstallPromptEvent) }
+    const onInstalled = () => setInstallPrompt(null)
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
+    window.addEventListener('appinstalled', onInstalled)
+    return () => { window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt); window.removeEventListener('appinstalled', onInstalled) }
+  }, [])
 
   const openModal = (nextMode: Exclude<AuthMode, null>) => {
     setMode(nextMode)
     setMessage(null)
     setShowPassword(false)
     if (nextMode === 'register') setRegistrationRole('teacher')
+  }
+
+  const installApp = async () => {
+    if (!installPrompt) return
+    await installPrompt.prompt()
+    await installPrompt.userChoice
+    setInstallPrompt(null)
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -87,6 +103,7 @@ export function LoginPage() {
           <div><strong>{settings.system_name}</strong><span>{settings.footer_text}</span></div>
           <div className="landing-action-stack">
             <div className="landing-actions">
+              {installPrompt && <button className="landing-install" onClick={() => void installApp()}><Download size={19} /> ติดตั้งเป็นแอป</button>}
               <button className="landing-register" onClick={() => openModal('register')}><UserPlus size={19} /> สมัครเป็นผู้ทดสอบ</button>
               <button className="landing-login" onClick={() => openModal('login')}><LogIn size={19} /> เข้าสู่ระบบ <ArrowRight size={18} /></button>
             </div>
