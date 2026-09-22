@@ -1,0 +1,32 @@
+name: Keep Supabase Active
+
+on:
+  schedule:
+    # 09:17 Asia/Bangkok (UTC+7) every day. Avoids the busiest top-of-hour window.
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping-database:
+    name: Read one public school record
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Request a lightweight read from Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 2 \
+            --connect-timeout 15 \
+            --max-time 30 \
+            --output /dev/null \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_PUBLISHABLE_KEY" \
+            "$SUPABASE_URL/rest/v1/schools?select=id&is_active=eq.true&limit=1"
