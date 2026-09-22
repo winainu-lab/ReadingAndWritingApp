@@ -8,7 +8,8 @@ interface SignUpInput {
   email: string
   password: string
   fullName: string
-  schoolId: string
+  schoolId?: string
+  requestedRole: 'teacher' | 'supervisor'
 }
 
 interface AuthContextValue {
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     const { data } = await supabase
       .from('profiles')
-      .select('id, email, full_name, role, status, school_id, school:schools(name)')
+      .select('id, email, full_name, role, requested_role, status, school_id, school:schools(name)')
       .eq('id', id)
       .maybeSingle()
     setProfile(data as unknown as Profile | null)
@@ -75,11 +76,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         return error?.message ?? null
       },
-      signUp: async ({ email, password, fullName, schoolId }) => {
+      signUp: async ({ email, password, fullName, schoolId, requestedRole }) => {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName, school_id: schoolId } },
+          options: { data: { full_name: fullName, school_id: schoolId ?? '', requested_role: requestedRole } },
         })
         return error?.message ?? null
       },

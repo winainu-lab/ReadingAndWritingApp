@@ -12,7 +12,7 @@ export function UsersPage() {
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
-  const profiles = useQuery({ queryKey: ['profiles-admin'], queryFn: async () => { const { data, error } = await supabase.from('profiles').select('id,email,full_name,role,status,school_id,school:schools(name)').order('created_at', { ascending: false }); if (error) throw error; return data as unknown as Profile[] } })
+  const profiles = useQuery({ queryKey: ['profiles-admin'], queryFn: async () => { const { data, error } = await supabase.from('profiles').select('id,email,full_name,role,requested_role,status,school_id,school:schools(name)').order('created_at', { ascending: false }); if (error) throw error; return data as unknown as Profile[] } })
   const schools = useQuery({ queryKey: ['active-schools'], queryFn: async () => { const { data, error } = await supabase.from('schools').select('id,name,district,network_center_id,network_center:network_centers(name,sort_order)').eq('is_active', true); if (error) throw error; return data as unknown as SchoolChoice[] } })
   const updateUser = useMutation({
     mutationFn: async ({ id, role, status, schoolId }: { id: string; role: AppRole; status: ProfileStatus; schoolId: string | null }) => { const { error } = await supabase.rpc('admin_update_profile', { p_profile_id: id, p_role: role, p_status: status, p_school_id: schoolId as string }); if (error) throw error },
@@ -57,13 +57,13 @@ export function UsersPage() {
 }
 
 function UserRow({ profile, schools, busy, onSave }: { profile: Profile; schools: SchoolChoice[]; busy: boolean; onSave: (role: AppRole, status: ProfileStatus, schoolId: string | null) => void }) {
-  const [role, setRole] = useState(profile.role)
+  const [role, setRole] = useState(profile.status === 'pending' ? profile.requested_role ?? profile.role : profile.role)
   const [status, setStatus] = useState(profile.status)
   const [schoolId, setSchoolId] = useState(profile.school_id ?? '')
   const changed = role !== profile.role || status !== profile.status || schoolId !== (profile.school_id ?? '')
   const approve = () => { setStatus('approved'); onSave(role, 'approved', schoolId || null) }
   return <tr>
-    <td><strong>{profile.full_name}</strong><small>{profile.email ?? 'ไม่มีอีเมลในข้อมูลเดิม'}</small></td>
+    <td><strong>{profile.full_name}</strong><small>{profile.email ?? 'ไม่มีอีเมลในข้อมูลเดิม'}</small>{profile.status === 'pending' && <small>คำขอ: {profile.requested_role === 'supervisor' ? 'ศึกษานิเทศก์ / ผู้คุมทดสอบ' : 'ครูผู้ทดสอบ'}</small>}</td>
     <td><select value={schoolId} onChange={(event) => setSchoolId(event.target.value)}><option value="">สำนักงานเขตพื้นที่ / ไม่ระบุ</option><SchoolOptions schools={schools} /></select></td>
     <td><select value={role} onChange={(event) => setRole(event.target.value as AppRole)}><option value="teacher">ครูผู้ทดสอบ</option><option value="supervisor">ศึกษานิเทศก์</option><option value="admin">ผู้ดูแลระบบ</option></select></td>
     <td><select value={status} onChange={(event) => setStatus(event.target.value as ProfileStatus)}><option value="pending">รออนุมัติ</option><option value="approved">อนุมัติ</option><option value="suspended">ระงับ</option></select></td>

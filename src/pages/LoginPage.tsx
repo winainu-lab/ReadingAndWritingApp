@@ -10,6 +10,7 @@ import type { SchoolChoice } from '../lib/schoolSorting'
 import { supabase } from '../lib/supabase'
 
 type AuthMode = 'login' | 'register' | null
+type RegistrationRole = 'teacher' | 'supervisor'
 
 export function LoginPage() {
   const { signIn, signUp } = useAuth()
@@ -18,6 +19,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
+  const [registrationRole, setRegistrationRole] = useState<RegistrationRole>('teacher')
   const logoUrl = getBrandLogoUrl(settings.logo_path)
 
   const schools = useQuery({
@@ -42,6 +44,7 @@ export function LoginPage() {
     setMode(nextMode)
     setMessage(null)
     setShowPassword(false)
+    if (nextMode === 'register') setRegistrationRole('teacher')
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -54,9 +57,9 @@ export function LoginPage() {
     const password = String(form.get('password') ?? '')
     const error = mode === 'login'
       ? await signIn(email, password)
-      : await signUp({ email, password, fullName: String(form.get('fullName') ?? ''), schoolId: String(form.get('schoolId') ?? '') })
+      : await signUp({ email, password, fullName: String(form.get('fullName') ?? ''), schoolId: String(form.get('schoolId') ?? ''), requestedRole: registrationRole })
     setBusy(false)
-    setMessage(error ? { tone: 'error', text: error } : mode === 'register' ? { tone: 'success', text: 'สมัครเรียบร้อย กรุณารอผู้ดูแลระบบอนุมัติบัญชี' } : null)
+    setMessage(error ? { tone: 'error', text: error } : mode === 'register' ? { tone: 'success', text: 'ส่งคำขอสมัครเรียบร้อย กรุณารอผู้ดูแลระบบอนุมัติบัญชี' } : null)
   }
 
   return (
@@ -84,7 +87,7 @@ export function LoginPage() {
           <div><strong>{settings.system_name}</strong><span>{settings.footer_text}</span></div>
           <div className="landing-action-stack">
             <div className="landing-actions">
-              <button className="landing-register" onClick={() => openModal('register')}><UserPlus size={19} /> สมัครครูผู้ทดสอบ</button>
+              <button className="landing-register" onClick={() => openModal('register')}><UserPlus size={19} /> สมัครเป็นผู้ทดสอบ</button>
               <button className="landing-login" onClick={() => openModal('login')}><LogIn size={19} /> เข้าสู่ระบบ <ArrowRight size={18} /></button>
             </div>
           </div>
@@ -101,23 +104,34 @@ export function LoginPage() {
             </div>
             <div className="auth-tabs" role="tablist">
               <button className={mode === 'login' ? 'active' : ''} onClick={() => openModal('login')}>เข้าสู่ระบบ</button>
-              <button className={mode === 'register' ? 'active' : ''} onClick={() => openModal('register')}>สมัครครูผู้ทดสอบ</button>
+              <button className={mode === 'register' ? 'active' : ''} onClick={() => openModal('register')}>สมัครเป็นผู้ทดสอบ</button>
             </div>
             <div className="auth-card__heading">
               <h2 id="auth-modal-title">{mode === 'login' ? 'ยินดีต้อนรับกลับ' : 'สร้างบัญชีผู้ทดสอบ'}</h2>
-              <p>{mode === 'login' ? 'เข้าสู่ระบบเพื่อดำเนินการประเมินต่อ' : 'เลือกโรงเรียนที่สังกัด ผู้ดูแลจะตรวจสอบก่อนเปิดใช้งาน'}</p>
+              <p>{mode === 'login' ? 'เข้าสู่ระบบเพื่อดำเนินการประเมินต่อ' : 'เลือกประเภทผู้สมัคร ผู้ดูแลระบบจะตรวจสอบก่อนเปิดใช้งาน'}</p>
             </div>
             {message && <Notice tone={message.tone}>{message.text}</Notice>}
             <form onSubmit={(event) => void handleSubmit(event)} className="form-stack">
               {mode === 'register' && (
                 <>
                   <label>ชื่อ–นามสกุล<input name="fullName" required placeholder="ชื่อผู้สมัคร" /></label>
-                  <label>โรงเรียน
+                  <fieldset className="registration-role">
+                    <legend>สมัครในฐานะ</legend>
+                    <label className={registrationRole === 'teacher' ? 'registration-role__choice active' : 'registration-role__choice'}>
+                      <input type="radio" name="requestedRole" value="teacher" checked={registrationRole === 'teacher'} onChange={() => setRegistrationRole('teacher')} />
+                      <span><strong>ครูผู้ทดสอบ</strong><small>ทดสอบนักเรียนในโรงเรียนที่สังกัด</small></span>
+                    </label>
+                    <label className={registrationRole === 'supervisor' ? 'registration-role__choice active' : 'registration-role__choice'}>
+                      <input type="radio" name="requestedRole" value="supervisor" checked={registrationRole === 'supervisor'} onChange={() => setRegistrationRole('supervisor')} />
+                      <span><strong>ศึกษานิเทศก์ / ผู้คุมทดสอบ</strong><small>หลังอนุมัติเลือกโรงเรียนเพื่อทดสอบได้ทุกแห่ง</small></span>
+                    </label>
+                  </fieldset>
+                  {registrationRole === 'teacher' ? <label>โรงเรียน
                     <select name="schoolId" required defaultValue="">
                       <option value="" disabled>เลือกโรงเรียนตามศูนย์เครือข่าย</option>
                       <SchoolOptions schools={schools.data ?? []} />
                     </select>
-                  </label>
+                  </label> : <div className="registration-role__note">ศึกษานิเทศก์ไม่ต้องเลือกโรงเรียนในขั้นสมัคร แอดมินจะตรวจสอบและอนุมัติสิทธิ์ก่อนใช้งาน</div>}
                 </>
               )}
               <label>อีเมล<input type="email" name="email" required placeholder="name@school.ac.th" autoComplete="email" /></label>

@@ -323,6 +323,7 @@ export type Database = {
           full_name: string
           id: string
           role: Database["public"]["Enums"]["app_role"]
+          requested_role: Database["public"]["Enums"]["app_role"]
           school_id: string | null
           status: Database["public"]["Enums"]["profile_status"]
           updated_at: string
@@ -333,6 +334,7 @@ export type Database = {
           full_name: string
           id: string
           role?: Database["public"]["Enums"]["app_role"]
+          requested_role?: Database["public"]["Enums"]["app_role"]
           school_id?: string | null
           status?: Database["public"]["Enums"]["profile_status"]
           updated_at?: string
@@ -343,6 +345,7 @@ export type Database = {
           full_name?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          requested_role?: Database["public"]["Enums"]["app_role"]
           school_id?: string | null
           status?: Database["public"]["Enums"]["profile_status"]
           updated_at?: string

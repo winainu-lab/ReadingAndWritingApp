@@ -6,6 +6,7 @@ export interface Profile {
   email: string | null
   full_name: string
   role: AppRole
+  requested_role?: AppRole
   status: ProfileStatus
   school_id: string | null
   school?: { name: string } | null
