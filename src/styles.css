@@ -555,7 +555,7 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
 .auth-modal__brand p { position: relative; z-index: 1; margin: 0; color: #6f4816; font-weight: 700; line-height: 1.35; text-align: center; }
 .auth-modal__logo { width: 58px; height: 58px; display: grid; place-items: center; overflow: hidden; margin-bottom: 18px; padding: 8px; color: #573514; background: linear-gradient(135deg, #fff3bb, #d4a134); border-radius: 50%; }
 .auth-modal__logo img { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; object-position: center; }
-.auth-modal__logo--uploaded { width: 104px; height: 82px; margin-bottom: 26px; padding: 0; background: transparent; border-radius: 0; }
+.auth-modal__logo--uploaded { width: 104px; height: 82px; margin-bottom: 42px; padding: 0; background: transparent; border-radius: 0; }
 .auth-modal .auth-card__heading { text-align: center; }
 .auth-modal .auth-tabs { margin-bottom: 20px; }
 
@@ -610,7 +610,7 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
   .auth-modal-backdrop { align-items: end; padding: 0; }
   .auth-modal { max-height: 94dvh; padding: 26px 18px 22px; border-radius: 24px 24px 0 0; }
   .auth-modal__brand { gap: 0; margin-bottom: 18px; padding: 2px 48px 0; }
-  .auth-modal__logo--uploaded { width: 92px; height: 74px; margin-bottom: 22px; }
+  .auth-modal__logo--uploaded { width: 92px; height: 74px; margin-bottom: 38px; }
 }
 
 /* คลังเอกสารสาธารณะและหน้าจัดการ */
