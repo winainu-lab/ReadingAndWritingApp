@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 220" preserveAspectRatio="none">
+  <g fill="#fffdf2">
+    <g opacity=".24">
+      <ellipse cx="34" cy="30" rx="118" ry="54"/>
+      <ellipse cx="126" cy="18" rx="92" ry="66"/>
+      <ellipse cx="208" cy="42" rx="105" ry="58"/>
+      <ellipse cx="102" cy="78" rx="150" ry="55"/>
+    </g>
+    <g opacity=".17">
+      <ellipse cx="426" cy="15" rx="96" ry="53"/>
+      <ellipse cx="508" cy="34" rx="122" ry="69"/>
+      <ellipse cx="605" cy="15" rx="91" ry="55"/>
+      <ellipse cx="520" cy="83" rx="164" ry="57"/>
+    </g>
+    <g opacity=".2">
+      <ellipse cx="822" cy="22" rx="105" ry="59"/>
+      <ellipse cx="918" cy="4" rx="88" ry="55"/>
+      <ellipse cx="994" cy="34" rx="106" ry="61"/>
+      <ellipse cx="908" cy="81" rx="158" ry="54"/>
+    </g>
+  </g>
+  <g fill="none" stroke="#fffdf2" stroke-linecap="round" opacity=".13" stroke-width="4">
+    <path d="M-24 121c73 24 142 18 207-18 43-24 89-29 137-15"/>
+    <path d="M371 139c66 18 130 12 190-19 41-21 87-25 137-11"/>
+    <path d="M764 132c65 17 127 11 186-19 39-20 81-24 127-12"/>
+  </g>
+</svg>

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.local
+.sites-runtime/
+supabase/.temp/
+supabase/.branches/
+coverage/
+*.log
+*.tsbuildinfo
+/tmp/
+/*.pdf
