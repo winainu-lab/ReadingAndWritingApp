@@ -758,7 +758,7 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
 .learn-panel { display: grid; gap: 14px; padding: 18px; background: #fff; border: 1px solid #ead8a8; border-radius: 18px; }
 .learn-panel h2 { margin: 0; font-size: 1.1rem; }
 .learn-panel h2 small { margin-left: 8px; color: var(--muted); font-size: .82rem; font-weight: 500; }
-.learn-options__row input[type='number'] { width: 110px; margin: 0; }
+.learn-options__row input[inputmode='numeric'] { width: 110px; margin: 0; text-align: center; }
 .learn-options__row label:not(.learn-toggle):not(.learn-search) { display: flex; align-items: center; gap: 10px; }
 .learn-segment { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .learn-segment button { padding: 9px 16px; color: #76552c; background: #fffaf0; border: 1px solid #ead8a8; border-radius: 999px; }
@@ -848,3 +848,4 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
 .learn-options__skill { margin: 0; color: var(--muted); font-size: .88rem; }
 .learn-options__skill strong { color: #4c2e12; }
 @media (max-width: 560px) { .learn-selected { flex-wrap: wrap; } .learn-selected button { width: 100%; } }
+.skill-mixer__row input[inputmode='numeric'] { text-align: center; }

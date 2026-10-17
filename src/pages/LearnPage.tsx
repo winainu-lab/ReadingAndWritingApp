@@ -3,7 +3,7 @@ import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, Clock3, Pause, P
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
-import { Button, EmptyState, LoadingState } from '../components/ui'
+import { Button, EmptyState, LoadingState, NumberInput } from '../components/ui'
 import { getBrandLogoUrl, useAppSettings } from '../hooks/useAppSettings'
 import { supabase } from '../lib/supabase'
 import type { Skill, VocabularyWord } from '../types/app'
@@ -266,7 +266,7 @@ export function LearnPage() {
             </div>
           </div>
           {selectionMode === 'random' ? <div className="learn-options__row">
-            <label>จำนวนคำ<input type="number" min={1} max={Math.max(1, candidates.length)} value={wordCount} onChange={(event) => setWordCount(Number(event.target.value))} /></label>
+            <label>จำนวนคำ<NumberInput min={1} max={Math.max(1, candidates.length)} value={Math.min(wordCount, Math.max(1, candidates.length))} onChange={setWordCount} /></label>
             <Button type="button" variant="ghost" disabled={!candidates.length} onClick={() => setWordCount(candidates.length)}>ใช้ทั้งหมด ({candidates.length})</Button>
           </div> : <>
             <div className="learn-options__row">
@@ -286,8 +286,8 @@ export function LearnPage() {
             <button role="radio" aria-checked={timerMode === 'perWord'} className={timerMode === 'perWord' ? 'active' : ''} onClick={() => setTimerMode('perWord')}>เวลาต่อคำ</button>
             <button role="radio" aria-checked={timerMode === 'total'} className={timerMode === 'total' ? 'active' : ''} onClick={() => setTimerMode('total')}>เวลารวมทั้งชุด</button>
           </div>
-          {timerMode === 'perWord' && <div className="learn-options__row"><label>วินาทีต่อคำ<input type="number" min={1} max={120} value={perWordSeconds} onChange={(event) => setPerWordSeconds(clampNumber(Number(event.target.value), 1, 120))} /></label><p className="learn-hint">หมดเวลาแล้วเปลี่ยนคำเอง ครูกด "อ่านถูก" เพื่อไปคำถัดไปก่อนเวลาได้ อ่านครบทุกคำแล้วจบ</p></div>}
-          {timerMode === 'total' && <div className="learn-options__row"><label>เวลาทั้งหมด (วินาที)<input type="number" min={10} max={3600} value={totalSeconds} onChange={(event) => setTotalSeconds(clampNumber(Number(event.target.value), 10, 3600))} /></label><p className="learn-hint">≈ {formatClock(totalSeconds)} นาที อ่านครบชุดแล้วถ้าเวลายังไม่หมดจะวนกลับไปอ่านรอบใหม่ จนเวลาหมด</p></div>}
+          {timerMode === 'perWord' && <div className="learn-options__row"><label>วินาทีต่อคำ<NumberInput min={1} max={120} value={perWordSeconds} onChange={setPerWordSeconds} /></label><p className="learn-hint">หมดเวลาแล้วเปลี่ยนคำเอง ครูกด "อ่านถูก" เพื่อไปคำถัดไปก่อนเวลาได้ อ่านครบทุกคำแล้วจบ</p></div>}
+          {timerMode === 'total' && <div className="learn-options__row"><label>เวลาทั้งหมด (วินาที)<NumberInput min={10} max={3600} value={totalSeconds} onChange={setTotalSeconds} /></label><p className="learn-hint">≈ {formatClock(totalSeconds)} นาที อ่านครบชุดแล้วถ้าเวลายังไม่หมดจะวนกลับไปอ่านรอบใหม่ จนเวลาหมด</p></div>}
         </div>}
 
         {skillId && <div className="learn-options">

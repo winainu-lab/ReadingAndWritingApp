@@ -3,7 +3,7 @@ import { BookOpenCheck, CalendarClock, Clock3, Pencil, Play, Plus, School, Spark
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
-import { Button, EmptyState, LoadingState, Modal, Notice, PageHeader } from '../components/ui'
+import { Button, EmptyState, LoadingState, Modal, NumberInput, Notice, PageHeader } from '../components/ui'
 import { formatWindow, fromLocalInput, getTestStatus, testStatusLabels, toLocalInput } from '../lib/testAvailability'
 import { supabase } from '../lib/supabase'
 import type { NetworkCenter, Skill, TestTemplate } from '../types/app'
@@ -163,7 +163,7 @@ function TestForm({ skills, networks, central, test, busy, error, onSubmit, onCa
       {!replaceWords ? <p className="learn-hint">คงชุดคำเดิมไว้ ({test?.item_count} ข้อ) แก้ได้เฉพาะชื่อ เวลา และการตั้งค่าอื่น หากมีผลประเมินแล้วจะเปลี่ยนชุดคำไม่ได้</p> : <>
         {picks.map((pick, index) => <div className="skill-mixer__row" key={index}>
           <select value={pick.skillId} onChange={(event) => updatePick(index, { skillId: event.target.value })} aria-label={`ทักษะที่ ${index + 1}`}><option value="">เลือกทักษะ</option>{levels.map((level) => <optgroup key={level} label={level}>{skills.filter((skill) => skill.level_code === level).map((skill) => <option key={skill.id} value={skill.id}>{skill.code} · {skill.name}</option>)}</optgroup>)}</select>
-          <input type="number" min={1} max={50} value={pick.count} onChange={(event) => updatePick(index, { count: Math.max(1, Math.min(50, Number(event.target.value) || 1)) })} aria-label={`จำนวนคำทักษะที่ ${index + 1}`} />
+          <NumberInput min={1} max={50} value={pick.count} onChange={(count) => updatePick(index, { count })} aria-label={`จำนวนคำทักษะที่ ${index + 1}`} />
           <span>คำ</span>
           {picks.length > 1 && <button type="button" className="icon-button" onClick={() => setPicks((value) => value.filter((_, position) => position !== index))} aria-label="ลบทักษะนี้"><X size={17} /></button>}
         </div>)}

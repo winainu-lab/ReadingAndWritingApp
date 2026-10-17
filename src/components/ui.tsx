@@ -1,5 +1,5 @@
 import { AlertCircle, CheckCircle2, LoaderCircle, X } from 'lucide-react'
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
 
 export function Button({
   children,
@@ -80,4 +80,49 @@ export function Modal({ title, children, onClose, closeOnBackdrop = false }: { t
       </section>
     </div>
   )
+}
+
+/**
+ * Number field that lets people type freely. The value is only forced into [min, max] when the
+ * field loses focus or Enter is pressed, so typing "180" never gets rewritten halfway as "1" → "10".
+ * In-range values are reported immediately; out-of-range drafts wait until the field is left.
+ */
+export function NumberInput({ value, min, max, onChange, className, ...rest }: {
+  value: number
+  min: number
+  max: number
+  onChange: (value: number) => void
+  className?: string
+  'aria-label'?: string
+}) {
+  const [draft, setDraft] = useState(String(value))
+  const focused = useRef(false)
+
+  // Follow outside changes (e.g. a "use all" button) while the user is not typing.
+  useEffect(() => { if (!focused.current) setDraft(String(value)) }, [value])
+
+  const commit = () => {
+    const parsed = Number(draft)
+    const next = draft.trim() === '' || !Number.isFinite(parsed) ? value : Math.min(max, Math.max(min, Math.round(parsed)))
+    setDraft(String(next))
+    if (next !== value) onChange(next)
+  }
+
+  return <input
+    {...rest}
+    className={className}
+    type="text"
+    inputMode="numeric"
+    pattern="[0-9]*"
+    value={draft}
+    onFocus={(event) => { focused.current = true; event.target.select() }}
+    onChange={(event) => {
+      const text = event.target.value.replace(/[^0-9]/g, '')
+      setDraft(text)
+      const parsed = Number(text)
+      if (text !== '' && parsed >= min && parsed <= max) onChange(parsed)
+    }}
+    onBlur={() => { focused.current = false; commit() }}
+    onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); commit() } }}
+  />
 }
