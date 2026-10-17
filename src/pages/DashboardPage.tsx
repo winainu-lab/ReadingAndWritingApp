@@ -5,6 +5,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { LoadingState } from '../components/ui'
 import { supabase } from '../lib/supabase'
 import { getBrandLogoUrl, useAppSettings } from '../hooks/useAppSettings'
+import { useAuth } from '../auth/AuthProvider'
 
 interface Summary {
   schools: number
@@ -21,6 +22,8 @@ const emptySummary: Summary = { schools: 0, networks: 0, classrooms: 0, students
 
 export function DashboardPage() {
   const { settings } = useAppSettings()
+  const { profile } = useAuth()
+  const isTeacher = profile?.role === 'teacher'
   const logoUrl = getBrandLogoUrl(settings.logo_path)
   const summary = useQuery({
     queryKey: ['dashboard-summary'],
@@ -36,10 +39,10 @@ export function DashboardPage() {
 
   return (
     <>
-      <section className="dashboard-welcome thai-pattern">{logoUrl && <div className="dashboard-welcome__logo"><img src={logoUrl} alt={`โลโก้ ${settings.affiliation}`} /></div>}<div className="dashboard-welcome__content"><p className="eyebrow">{settings.affiliation}</p><h1>{settings.system_name}</h1><span>สถานการณ์การอ่านและข้อมูลประเมินล่าสุดจากทุกโรงเรียนในระบบ</span></div><Link className="button button--primary" to="/assessment"><ClipboardCheck size={19} /> เริ่มทดสอบ</Link></section>
+      <section className="dashboard-welcome thai-pattern">{logoUrl && <div className="dashboard-welcome__logo"><img src={logoUrl} alt={`โลโก้ ${settings.affiliation}`} /></div>}<div className="dashboard-welcome__content"><p className="eyebrow">{settings.affiliation}</p><h1>{settings.system_name}</h1><span>{isTeacher ? `สถานการณ์การอ่านและข้อมูลประเมินล่าสุดของ${profile?.school?.name ?? 'โรงเรียนของท่าน'}` : 'สถานการณ์การอ่านและข้อมูลประเมินล่าสุดจากทุกโรงเรียนในระบบ'}</span></div><Link className="button button--primary" to="/assessment"><ClipboardCheck size={19} /> เริ่มทดสอบ</Link></section>
 
       <section className="metric-grid" aria-label="สรุปข้อมูล">
-        <article className="metric-card metric-card--accent"><span className="metric-card__icon"><School /></span><div><span>โรงเรียนในระบบ</span><strong>{data.schools.toLocaleString('th-TH')}</strong><small>ใน {data.networks} ศูนย์เครือข่าย</small></div></article>
+        <article className="metric-card metric-card--accent"><span className="metric-card__icon"><School /></span><div><span>{isTeacher ? 'โรงเรียนของท่าน' : 'โรงเรียนในระบบ'}</span><strong>{data.schools.toLocaleString('th-TH')}</strong><small>{isTeacher ? 'เห็นเฉพาะข้อมูลของโรงเรียนท่าน' : `ใน ${data.networks} ศูนย์เครือข่าย`}</small></div></article>
         <article className="metric-card"><span className="metric-card__icon"><Users /></span><div><span>นักเรียนสมมติ</span><strong>{data.students.toLocaleString('th-TH')}</strong><small>จาก {data.classrooms} ห้องเรียน</small></div></article>
         <article className="metric-card"><span className="metric-card__icon"><BookOpenCheck /></span><div><span>ประเมินแล้ว</span><strong>{data.sessions.toLocaleString('th-TH')}</strong><small>ครั้งสะสม</small></div></article>
         <article className="metric-card"><span className="metric-card__icon"><CheckCircle2 /></span><div><span>ความถูกต้องเฉลี่ย</span><strong>{data.completion_rate.toFixed(1)}%</strong><small>จากแบบทดสอบที่เสร็จสิ้น</small></div></article>

@@ -809,6 +809,20 @@ export type Database = {
           title: string
         }[]
       }
+      get_school_report: {
+        Args: { p_district?: string; p_network?: string; p_school?: string }
+        Returns: {
+          accuracy: number
+          classroom_count: number
+          district_name: string
+          network_id: string
+          network_name: string
+          school_id: string
+          school_name: string
+          session_count: number
+          student_count: number
+        }[]
+      }
       registration_code_matches: { Args: { p_code: string }; Returns: boolean }
       update_test_template_from_skill: {
         Args: {
