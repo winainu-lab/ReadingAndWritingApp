@@ -13,7 +13,8 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local --schema public > src/types/database.generated.ts",
-    "functions:serve": "supabase functions serve --no-verify-jwt"
+    "functions:serve": "supabase functions serve --no-verify-jwt",
+    "release:check": "node scripts/release-check.mjs"
   },
   "dependencies": {
     "@fontsource/sarabun": "latest",
