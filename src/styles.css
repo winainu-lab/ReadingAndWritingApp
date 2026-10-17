@@ -821,3 +821,5 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
 .audience-chip { padding: 6px 12px; color: #5b3a12; background: #fff; border: 1px solid #ead8a8; border-radius: 999px; font-size: .88rem; }
 .audience-chip--district { font-weight: 700; background: #fdf1cc; }
 .audience-chip.active { color: #fff8e6; background: #805018; border-color: #805018; }
+.landing-visits { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: #ecd7a8; font-size: .76rem; letter-spacing: .01em; }
+.landing-visits strong { color: #fff4d0; font-weight: 700; }

@@ -123,6 +123,7 @@ export interface AppSettings {
   welcome_description: string
   logo_path: string | null
   manual_url: string | null
+  show_visit_counter: boolean
   updated_at: string
   updated_by: string | null
 }

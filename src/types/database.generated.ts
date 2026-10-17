@@ -17,6 +17,7 @@ export type Database = {
           landing_kicker: string
           logo_path: string | null
           manual_url: string | null
+          show_visit_counter: boolean
           system_name: string
           updated_at: string
           updated_by: string | null
@@ -30,6 +31,7 @@ export type Database = {
           landing_kicker?: string
           logo_path?: string | null
           manual_url?: string | null
+          show_visit_counter?: boolean
           system_name?: string
           updated_at?: string
           updated_by?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           landing_kicker?: string
           logo_path?: string | null
           manual_url?: string | null
+          show_visit_counter?: boolean
           system_name?: string
           updated_at?: string
           updated_by?: string | null
@@ -844,6 +847,7 @@ export type Database = {
           title: string
         }[]
       }
+      get_public_visit_summary: { Args: never; Returns: Json }
       get_school_report: {
         Args: { p_district?: string; p_network?: string; p_school?: string }
         Returns: {

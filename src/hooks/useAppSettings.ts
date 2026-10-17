@@ -12,6 +12,7 @@ export const defaultAppSettings: AppSettings = {
   welcome_description: 'ประเมินแบบไม่ใช้ข้อมูลส่วนตัว สรุปผลระดับโรงเรียน ศูนย์เครือข่าย และเขตพื้นที่ในที่เดียว',
   logo_path: null,
   manual_url: null,
+  show_visit_counter: true,
   updated_at: '',
   updated_by: null,
 }

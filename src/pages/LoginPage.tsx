@@ -33,6 +33,15 @@ export function LoginPage() {
       return data as unknown as SchoolChoice[]
     },
   })
+  const visits = useQuery({
+    queryKey: ['public-visit-summary'],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_public_visit_summary')
+      if (error) throw error
+      return data as unknown as { total: number; today: number } | null
+    },
+  })
   const networkCount = useMemo(() => new Set(schools.data?.map((school) => school.network_center_id)).size, [schools.data])
 
   useEffect(() => { document.title = settings.system_name }, [settings.system_name])
@@ -116,6 +125,7 @@ export function LoginPage() {
               <button className="landing-login" onClick={() => openModal('login')}><LogIn size={19} /> เข้าสู่ระบบ <ArrowRight size={18} /></button>
             </div>
             <ManualButton />
+            {visits.data && <p className="landing-visits" aria-label="ยอดเข้าชม"><Eye size={14} /> เข้าชมทั้งหมด <strong>{visits.data.total.toLocaleString('th-TH')}</strong> ครั้ง · วันนี้ <strong>{visits.data.today.toLocaleString('th-TH')}</strong></p>}
           </div>
         </footer>
       </section>

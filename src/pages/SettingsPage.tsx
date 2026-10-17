@@ -16,7 +16,7 @@ export function SettingsPage() {
   const currentLogoUrl = getBrandLogoUrl(settings.logo_path)
   const saveSettings = useMutation({
     mutationFn: async ({ values, file }: {
-      values: { system_name: string; affiliation: string; footer_text: string; landing_kicker: string; welcome_headline: string; welcome_description: string; manual_url: string | null }
+      values: { system_name: string; affiliation: string; footer_text: string; landing_kicker: string; welcome_headline: string; welcome_description: string; manual_url: string | null; show_visit_counter: boolean }
       file: File | null
     }) => {
       let logoPath = settings.logo_path
@@ -47,7 +47,7 @@ export function SettingsPage() {
     saveSettings.mutate({ values: {
       system_name: String(form.get('system_name')).trim(), affiliation: String(form.get('affiliation')).trim(),
       footer_text: String(form.get('footer_text')).trim(), landing_kicker: String(form.get('landing_kicker')).trim(), welcome_headline: String(form.get('welcome_headline')).trim(),
-      welcome_description: String(form.get('welcome_description')).trim(), manual_url: String(form.get('manual_url') ?? '').trim() || null,
+      welcome_description: String(form.get('welcome_description')).trim(), manual_url: String(form.get('manual_url') ?? '').trim() || null, show_visit_counter: form.get('show_visit_counter') === 'on',
     }, file: logoFile })
   }
 
@@ -116,6 +116,7 @@ export function SettingsPage() {
           <label>ข้อความต้อนรับ<input name="welcome_headline" required maxLength={150} defaultValue={settings.welcome_headline} /></label>
           <label>คำอธิบายหน้าเข้าสู่ระบบ<textarea name="welcome_description" required maxLength={300} rows={3} defaultValue={settings.welcome_description} /></label>
           <label>ลิงก์คู่มือการใช้งาน (PDF บน Google Drive)<input name="manual_url" type="url" maxLength={500} defaultValue={settings.manual_url ?? ''} placeholder="https://drive.google.com/file/d/…/view" /><small className="field-hint">ตั้งไฟล์เป็น "ทุกคนที่มีลิงก์ดูได้" ปุ่มคู่มือที่หน้าแรกและในเมนูจะเปิดไฟล์นี้ เว้นว่างเพื่อซ่อนปุ่ม</small></label>
+          <label className="checkbox-field"><input name="show_visit_counter" type="checkbox" defaultChecked={settings.show_visit_counter} /><span><strong>แสดงยอดเข้าชมที่หน้าแรก</strong><small>ตัวเลขเล็ก ๆ ใต้ปุ่มคู่มือ นับเฉพาะการเข้าชมเว็บ ไม่รวมการใช้งานทดสอบ</small></span></label>
           <label>ข้อความท้ายเว็บไซต์<input name="footer_text" required maxLength={180} defaultValue={settings.footer_text} /></label>
           <div className="settings-preview"><CheckCircle2 /><div><strong>พร้อมใช้กับหลายเขตพื้นที่</strong><span>ข้อมูลโรงเรียนและศูนย์เครือข่ายยังจัดการแยกต่างหากในเมนูโรงเรียน</span></div></div>
           <Button type="submit" disabled={saveSettings.isPending}><Save size={18} /> {saveSettings.isPending ? 'กำลังบันทึก…' : 'บันทึกชื่อและข้อความ'}</Button>
