@@ -57,13 +57,15 @@ Deno.serve(async (request) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name: fullName, school_id: schoolId },
+      // The signup trigger only waives the school requirement for non-teacher requests,
+      // so admin and supervisor accounts are created as a supervisor request and then promoted below.
+      user_metadata: { full_name: fullName, school_id: schoolId, requested_role: role === 'teacher' ? 'teacher' : 'supervisor' },
     })
     if (createError || !created.user) throw new Error(createError?.message ?? 'สร้างบัญชีไม่สำเร็จ')
 
     const { error: updateError } = await adminClient
       .from('profiles')
-      .update({ email, full_name: fullName, role, status: 'approved', school_id: schoolId })
+      .update({ email, full_name: fullName, role, requested_role: role, status: 'approved', school_id: schoolId })
       .eq('id', created.user.id)
 
     if (updateError) {

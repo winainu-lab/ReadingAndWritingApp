@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Play, RotateCcw, SkipForward, X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthProvider'
 import { Button, Notice, PageHeader } from '../components/ui'
 import { calculateAssessmentResult, type AssessmentOutcome } from '../lib/assessment'
@@ -18,6 +18,9 @@ export function AssessmentPage() {
   const [answers, setAnswers] = useState<Record<string, AssessmentOutcome>>({})
   const [secondsLeft, setSecondsLeft] = useState(0)
   const [startedAt, setStartedAt] = useState<Date | null>(null)
+  const responseTimes = useRef<Record<string, number>>({})
+  const itemShownAt = useRef(0)
+  const autoFinished = useRef(false)
   const [completed, setCompleted] = useState<{ score: number; total: number; accuracy: number } | null>(null)
 
   const classrooms = useQuery({ queryKey: ['classrooms-for-assessment'], queryFn: async () => { const { data, error } = await supabase.from('classrooms').select('*, school:schools(name)').is('archived_at', null).order('created_at', { ascending: false }); if (error) throw error; return data as Classroom[] } })
@@ -40,7 +43,7 @@ export function AssessmentPage() {
         duration_seconds: Math.max(0, selectedTest.duration_seconds - secondsLeft), score: result.score, total_items: result.total, accuracy: result.accuracy,
       }).select('id').single()
       if (error) throw error
-      const responses = testItems.map((item) => ({ assessment_session_id: session.id, test_template_item_id: item.id, outcome: answers[item.id] ?? 'skipped', response_time_ms: null }))
+      const responses = testItems.map((item) => ({ assessment_session_id: session.id, test_template_item_id: item.id, outcome: answers[item.id] ?? 'skipped', response_time_ms: responseTimes.current[item.id] ?? null }))
       const { error: responseError } = await supabase.from('assessment_responses').insert(responses)
       if (responseError) throw responseError
       return result
@@ -54,9 +57,17 @@ export function AssessmentPage() {
     return () => window.clearInterval(timer)
   }, [running, secondsLeft])
 
+  useEffect(() => {
+    if (!running || secondsLeft > 0 || autoFinished.current) return
+    autoFinished.current = true
+    finish.mutate()
+  }, [running, secondsLeft, finish])
+
+  useEffect(() => { itemShownAt.current = Date.now() }, [current, running])
+
   const formattedTime = useMemo(() => `${String(Math.floor(secondsLeft / 60)).padStart(2, '0')}:${String(secondsLeft % 60).padStart(2, '0')}`, [secondsLeft])
-  const begin = () => { if (!selectedTest || !testItems.length) return; setAnswers({}); setCurrent(0); setSecondsLeft(selectedTest.duration_seconds); setStartedAt(new Date()); setCompleted(null); setRunning(true) }
-  const mark = (outcome: AssessmentOutcome) => { const item = testItems[current]; if (!item) return; setAnswers((value) => ({ ...value, [item.id]: outcome })); if (current < testItems.length - 1) setCurrent((value) => value + 1) }
+  const begin = () => { if (!selectedTest || !testItems.length) return; setAnswers({}); responseTimes.current = {}; autoFinished.current = false; setCurrent(0); setSecondsLeft(selectedTest.duration_seconds); setStartedAt(new Date()); setCompleted(null); setRunning(true) }
+  const mark = (outcome: AssessmentOutcome) => { const item = testItems[current]; if (!item) return; responseTimes.current[item.id] = Date.now() - itemShownAt.current; setAnswers((value) => ({ ...value, [item.id]: outcome })); if (current < testItems.length - 1) setCurrent((value) => value + 1) }
 
   if (running) {
     const item = testItems[current]
@@ -71,7 +82,7 @@ export function AssessmentPage() {
         <button className="score-button score-button--skip" onClick={() => mark('skipped')}><SkipForward /> ข้าม</button>
         <button className="score-button score-button--correct" onClick={() => mark('correct')}><Check /> อ่านถูก</button>
       </footer>
-      <div className="runner__bottom"><button disabled={current === 0} onClick={() => setCurrent((value) => Math.max(0, value - 1))}><ChevronLeft /> ก่อนหน้า</button><span>บันทึกแล้ว {answered}/{testItems.length}</span>{current === testItems.length - 1 ? <Button disabled={finish.isPending} onClick={() => finish.mutate()}>จบการทดสอบ</Button> : <button onClick={() => setCurrent((value) => Math.min(testItems.length - 1, value + 1))}>ถัดไป <ChevronRight /></button>}</div>
+      <div className="runner__bottom"><button disabled={current === 0} onClick={() => setCurrent((value) => Math.max(0, value - 1))}><ChevronLeft /> ก่อนหน้า</button><span>บันทึกแล้ว {answered}/{testItems.length}</span>{current === testItems.length - 1 ? <Button disabled={finish.isPending} onClick={() => { if (answered < testItems.length && !window.confirm(`ยังบันทึกไม่ครบ (${answered}/${testItems.length}) ข้อที่เหลือจะนับเป็น "ข้าม" ต้องการจบการทดสอบหรือไม่`)) return; finish.mutate() }}>จบการทดสอบ</Button> : <button onClick={() => setCurrent((value) => Math.min(testItems.length - 1, value + 1))}>ถัดไป <ChevronRight /></button>}</div>
     </section>
   }
 
