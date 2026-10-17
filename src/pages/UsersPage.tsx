@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, Plus, Search, UserCheck, Users } from 'lucide-react'
+import { CheckCircle2, KeyRound, Pencil, Plus, Search, UserCheck, Users } from 'lucide-react'
 import { useMemo, useState, type FormEvent } from 'react'
 import { Button, EmptyState, LoadingState, Modal, Notice, PageHeader } from '../components/ui'
 import { SchoolOptions } from '../components/SchoolOptions'
@@ -25,6 +25,23 @@ export function UsersPage() {
     },
     onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['profiles-admin'] }); setShowCreate(false); setMessage('สร้างและอนุมัติบัญชีผู้ใช้เรียบร้อย') },
   })
+  const [editing, setEditing] = useState<Profile | null>(null)
+  const editAccount = useMutation({
+    mutationFn: async (payload: { userId: string; fullName: string; email: string; password: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-update-user', { body: { ...payload, password: payload.password || undefined } })
+      if (error) {
+        const detail = await (error as { context?: Response }).context?.json?.().catch(() => null) as { error?: string } | null
+        throw new Error(detail?.error ?? (data as { error?: string } | null)?.error ?? error.message)
+      }
+    },
+    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['profiles-admin'] }); setEditing(null); setMessage('บันทึกข้อมูลบัญชีแล้ว') },
+  })
+  const handleEdit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!editing) return
+    const form = new FormData(event.currentTarget)
+    editAccount.mutate({ userId: editing.id, fullName: String(form.get('fullName')), email: String(form.get('email')), password: String(form.get('password') ?? '') })
+  }
   const rows = useMemo(() => {
     const keyword = search.trim().toLocaleLowerCase('th')
     return (profiles.data ?? []).filter((entry) => !keyword || entry.full_name.toLocaleLowerCase('th').includes(keyword) || entry.email?.toLocaleLowerCase('th').includes(keyword) || entry.school?.name?.toLocaleLowerCase('th').includes(keyword))
@@ -41,7 +58,16 @@ export function UsersPage() {
     <PageHeader eyebrow="สำหรับผู้ดูแลระบบ" title="ผู้ใช้งานและการอนุมัติ" description="สร้างบัญชีให้ครูโดยตรง ตรวจผู้สมัคร กำหนดโรงเรียน บทบาท และสถานะได้จากหน้านี้" action={<Button onClick={() => setShowCreate(true)}><Plus size={18} /> เพิ่มผู้ใช้งาน</Button>} />
     {message && <Notice tone="success">{message}</Notice>}
     <section className="toolbar"><label className="search-box"><Search size={19} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ค้นหาชื่อ อีเมล หรือโรงเรียน" /></label><span className="result-count">รออนุมัติ {(profiles.data ?? []).filter((entry) => entry.status === 'pending').length} คน</span></section>
-    {profiles.isLoading ? <LoadingState /> : rows.length ? <section className="table-card"><div className="data-table-wrap"><table className="data-table user-table"><thead><tr><th>ผู้ใช้งาน</th><th>โรงเรียน</th><th>บทบาท</th><th>สถานะ</th><th /></tr></thead><tbody>{rows.map((entry) => <UserRow key={entry.id} profile={entry} schools={schools.data ?? []} busy={updateUser.isPending} onSave={(role, status, schoolId) => updateUser.mutate({ id: entry.id, role, status, schoolId })} />)}</tbody></table></div></section> : <EmptyState icon={<Users />} title="ไม่พบผู้ใช้งาน" description="ลองเปลี่ยนคำค้นหา" />}
+    {profiles.isLoading ? <LoadingState /> : rows.length ? <section className="table-card"><div className="data-table-wrap"><table className="data-table user-table"><thead><tr><th>ผู้ใช้งาน</th><th>โรงเรียน</th><th>บทบาท</th><th>สถานะ</th><th /></tr></thead><tbody>{rows.map((entry) => <UserRow key={entry.id} profile={entry} schools={schools.data ?? []} busy={updateUser.isPending} onEdit={() => { editAccount.reset(); setEditing(entry) }} onSave={(role, status, schoolId) => updateUser.mutate({ id: entry.id, role, status, schoolId })} />)}</tbody></table></div></section> : <EmptyState icon={<Users />} title="ไม่พบผู้ใช้งาน" description="ลองเปลี่ยนคำค้นหา" />}
+
+    {editing && <Modal title="แก้ไขบัญชีผู้ใช้" onClose={() => setEditing(null)}><form className="form-grid" onSubmit={handleEdit} key={editing.id}>
+      {editAccount.error && <div className="form-grid__full"><Notice tone="error">{editAccount.error.message}</Notice></div>}
+      <label className="form-grid__full">ชื่อ–นามสกุล<input name="fullName" required defaultValue={editing.full_name} /></label>
+      <label className="form-grid__full">อีเมลที่ใช้เข้าสู่ระบบ<input name="email" type="email" required defaultValue={editing.email ?? ''} /></label>
+      <label className="form-grid__full">ตั้งรหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)<input name="password" type="text" minLength={8} autoComplete="new-password" placeholder="อย่างน้อย 8 ตัวอักษร" /></label>
+      <div className="form-grid__full info-callout"><KeyRound size={20} /><span>ผู้ใช้ที่กำลังเข้าสู่ระบบอยู่ยังใช้งานต่อได้จนกว่า session จะหมดอายุ แจ้งรหัสผ่านใหม่ให้ผู้ใช้โดยตรง ระบบไม่เก็บรหัสผ่านที่อ่านได้</span></div>
+      <div className="form-actions form-grid__full"><Button type="button" variant="ghost" onClick={() => setEditing(null)}>ยกเลิก</Button><Button type="submit" disabled={editAccount.isPending}>บันทึกบัญชี</Button></div>
+    </form></Modal>}
 
     {showCreate && <Modal title="เพิ่มผู้ใช้งาน" onClose={() => setShowCreate(false)}><form className="form-grid" onSubmit={handleCreate}>
       {createUser.error && <div className="form-grid__full"><Notice tone="error">{createUser.error.message}</Notice></div>}
@@ -56,7 +82,7 @@ export function UsersPage() {
   </>
 }
 
-function UserRow({ profile, schools, busy, onSave }: { profile: Profile; schools: SchoolChoice[]; busy: boolean; onSave: (role: AppRole, status: ProfileStatus, schoolId: string | null) => void }) {
+function UserRow({ profile, schools, busy, onEdit, onSave }: { profile: Profile; schools: SchoolChoice[]; busy: boolean; onEdit: () => void; onSave: (role: AppRole, status: ProfileStatus, schoolId: string | null) => void }) {
   const [role, setRole] = useState(profile.status === 'pending' ? profile.requested_role ?? profile.role : profile.role)
   const [status, setStatus] = useState(profile.status)
   const [schoolId, setSchoolId] = useState(profile.school_id ?? '')
@@ -67,6 +93,6 @@ function UserRow({ profile, schools, busy, onSave }: { profile: Profile; schools
     <td><select value={schoolId} onChange={(event) => setSchoolId(event.target.value)}><option value="">สำนักงานเขตพื้นที่ / ไม่ระบุ</option><SchoolOptions schools={schools} /></select></td>
     <td><select value={role} onChange={(event) => setRole(event.target.value as AppRole)}><option value="teacher">ครูผู้ทดสอบ</option><option value="supervisor">ศึกษานิเทศก์</option><option value="admin">ผู้ดูแลระบบ</option></select></td>
     <td><select value={status} onChange={(event) => setStatus(event.target.value as ProfileStatus)}><option value="pending">รออนุมัติ</option><option value="approved">อนุมัติ</option><option value="suspended">ระงับ</option></select></td>
-    <td>{profile.status === 'pending' ? <Button disabled={busy || (role === 'teacher' && !schoolId)} onClick={approve}><CheckCircle2 size={17} /> อนุมัติ</Button> : <Button variant="secondary" disabled={busy || !changed || (role === 'teacher' && !schoolId)} onClick={() => onSave(role, status, schoolId || null)}><UserCheck size={17} /> บันทึก</Button>}</td>
+    <td><div className="user-row-actions"><button className="icon-button" aria-label={`แก้ไขบัญชี ${profile.full_name}`} title="แก้ไขชื่อ อีเมล รหัสผ่าน" onClick={onEdit}><Pencil size={17} /></button>{profile.status === 'pending' ? <Button disabled={busy || (role === 'teacher' && !schoolId)} onClick={approve}><CheckCircle2 size={17} /> อนุมัติ</Button> : <Button variant="secondary" disabled={busy || !changed || (role === 'teacher' && !schoolId)} onClick={() => onSave(role, status, schoolId || null)}><UserCheck size={17} /> บันทึก</Button>}</div></td>
   </tr>
 }

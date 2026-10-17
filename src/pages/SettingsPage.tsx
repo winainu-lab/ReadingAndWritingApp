@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, ImageUp, Palette, Save } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CheckCircle2, ImageUp, KeyRound, Palette, RefreshCw, Save } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../auth/AuthProvider'
 import { Button, Notice, PageHeader } from '../components/ui'
@@ -51,6 +51,30 @@ export function SettingsPage() {
     }, file: logoFile })
   }
 
+  const registration = useQuery({
+    queryKey: ['registration-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('registration_settings').select('teacher_code,is_enabled').eq('id', 'default').single()
+      if (error) throw error
+      return data
+    },
+  })
+  const [codeDraft, setCodeDraft] = useState<string | null>(null)
+  const [codeEnabled, setCodeEnabled] = useState<boolean | null>(null)
+  const [codeSaved, setCodeSaved] = useState(false)
+  const shownCode = codeDraft ?? registration.data?.teacher_code ?? ''
+  const shownEnabled = codeEnabled ?? registration.data?.is_enabled ?? false
+  const saveCode = useMutation({
+    mutationFn: async () => {
+      const code = shownCode.trim()
+      if (code.length < 4) throw new Error('รหัสสมัครต้องมีอย่างน้อย 4 ตัวอักษร')
+      const { error } = await supabase.from('registration_settings').update({ teacher_code: code, is_enabled: shownEnabled, updated_by: user?.id ?? null }).eq('id', 'default')
+      if (error) throw error
+    },
+    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['registration-settings'] }); setCodeDraft(null); setCodeEnabled(null); setCodeSaved(true) },
+  })
+  const generateCode = () => { const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; setCodeDraft(Array.from(crypto.getRandomValues(new Uint8Array(8)), (value) => alphabet[value % alphabet.length]).join('')); setCodeSaved(false) }
+
   const handleLogo = (file: File | null) => {
     setLogoFile(file)
     if (!file) return setLogoPreview(null)
@@ -67,6 +91,17 @@ export function SettingsPage() {
     />
     {saved && <Notice tone="success">บันทึกการตั้งค่าแล้ว ทุกหน้าจะใช้ชื่อใหม่ทันที</Notice>}
     {saveSettings.error && <Notice tone="error">{saveSettings.error.message}</Notice>}
+    <section className="settings-card registration-code-card">
+      <div className="settings-card__intro"><KeyRound /><div><h2>รหัสสมัครสำหรับครู</h2><p>ครูที่กรอกรหัสนี้ตอนสมัครจะใช้งานได้ทันที ไม่ต้องรอแอดมินอนุมัติ ส่วนศึกษานิเทศก์ยังต้องให้แอดมินอนุมัติทุกครั้ง แจกรหัสเฉพาะบุคลากรในเขตเท่านั้น และเปลี่ยนรหัสได้ทุกเมื่อ</p></div></div>
+      {codeSaved && <Notice tone="success">บันทึกรหัสสมัครแล้ว</Notice>}
+      {saveCode.error && <Notice tone="error">{saveCode.error.message}</Notice>}
+      <div className="registration-code-card__row">
+        <label>รหัสสมัคร<input value={shownCode} onChange={(event) => { setCodeDraft(event.target.value); setCodeSaved(false) }} maxLength={32} autoComplete="off" spellCheck={false} /></label>
+        <Button type="button" variant="ghost" onClick={generateCode}><RefreshCw size={17} /> สุ่มรหัสใหม่</Button>
+        <label className="learn-toggle"><input type="checkbox" checked={shownEnabled} onChange={(event) => { setCodeEnabled(event.target.checked); setCodeSaved(false) }} /> เปิดใช้รหัสสมัคร</label>
+        <Button type="button" disabled={saveCode.isPending || registration.isLoading} onClick={() => saveCode.mutate()}><Save size={18} /> บันทึกรหัส</Button>
+      </div>
+    </section>
     <section className="settings-layout">
       <form className="settings-card" onSubmit={handleSubmit} key={settings.updated_at || 'default'}>
         <div className="settings-card__intro"><Palette /><div><h2>อัตลักษณ์ระบบ</h2><p>ข้อความเหล่านี้จะแสดงในหน้าเข้าสู่ระบบ เมนูหลัก หน้าแรก และท้ายเว็บไซต์</p></div></div>

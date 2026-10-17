@@ -322,8 +322,8 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
-          role: Database["public"]["Enums"]["app_role"]
           requested_role: Database["public"]["Enums"]["app_role"]
+          role: Database["public"]["Enums"]["app_role"]
           school_id: string | null
           status: Database["public"]["Enums"]["profile_status"]
           updated_at: string
@@ -333,8 +333,8 @@ export type Database = {
           email?: string | null
           full_name: string
           id: string
-          role?: Database["public"]["Enums"]["app_role"]
           requested_role?: Database["public"]["Enums"]["app_role"]
+          role?: Database["public"]["Enums"]["app_role"]
           school_id?: string | null
           status?: Database["public"]["Enums"]["profile_status"]
           updated_at?: string
@@ -344,8 +344,8 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
           requested_role?: Database["public"]["Enums"]["app_role"]
+          role?: Database["public"]["Enums"]["app_role"]
           school_id?: string | null
           status?: Database["public"]["Enums"]["profile_status"]
           updated_at?: string
@@ -356,6 +356,38 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registration_settings: {
+        Row: {
+          id: string
+          is_enabled: boolean
+          teacher_code: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          is_enabled?: boolean
+          teacher_code: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          is_enabled?: boolean
+          teacher_code?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -684,6 +716,7 @@ export type Database = {
         Args: { target_school_id: string }
         Returns: boolean
       }
+      check_registration_code: { Args: { p_code: string }; Returns: boolean }
       create_classroom_with_students: {
         Args: {
           p_academic_year: number
@@ -737,6 +770,7 @@ export type Database = {
           title: string
         }[]
       }
+      registration_code_matches: { Args: { p_code: string }; Returns: boolean }
       update_test_template_from_skill: {
         Args: {
           p_description: string
@@ -887,3 +921,4 @@ export const Constants = {
     },
   },
 } as const
+

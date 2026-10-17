@@ -71,11 +71,15 @@ export function LoginPage() {
     const form = new FormData(event.currentTarget)
     const email = String(form.get('email') ?? '')
     const password = String(form.get('password') ?? '')
-    const error = mode === 'login'
-      ? await signIn(email, password)
-      : await signUp({ email, password, fullName: String(form.get('fullName') ?? ''), schoolId: String(form.get('schoolId') ?? ''), requestedRole: registrationRole })
+    if (mode === 'login') {
+      const error = await signIn(email, password)
+      setBusy(false)
+      setMessage(error ? { tone: 'error', text: error } : null)
+      return
+    }
+    const result = await signUp({ email, password, fullName: String(form.get('fullName') ?? ''), schoolId: String(form.get('schoolId') ?? ''), requestedRole: registrationRole, registrationCode: String(form.get('registrationCode') ?? '') })
     setBusy(false)
-    setMessage(error ? { tone: 'error', text: error } : mode === 'register' ? { tone: 'success', text: 'ส่งคำขอสมัครเรียบร้อย กรุณารอผู้ดูแลระบบอนุมัติบัญชี' } : null)
+    setMessage(result.error ? { tone: 'error', text: result.error } : { tone: 'success', text: result.approved ? 'สมัครสำเร็จ บัญชีของคุณใช้งานได้ทันที' : 'ส่งคำขอสมัครเรียบร้อย กรุณารอผู้ดูแลระบบอนุมัติบัญชี' })
   }
 
   return (
@@ -152,6 +156,7 @@ export function LoginPage() {
                       <SchoolOptions schools={schools.data ?? []} />
                     </select>
                   </label> : <div className="registration-role__note">ศึกษานิเทศก์ไม่ต้องเลือกโรงเรียนในขั้นสมัคร แอดมินจะตรวจสอบและอนุมัติสิทธิ์ก่อนใช้งาน</div>}
+                  {registrationRole === 'teacher' && <label>รหัสสมัครจากเขตพื้นที่ (ถ้ามี)<input name="registrationCode" autoComplete="off" placeholder="กรอกรหัสเพื่อใช้งานได้ทันที" /><small className="field-hint">ไม่มีรหัสก็สมัครได้ แต่ต้องรอผู้ดูแลระบบอนุมัติ</small></label>}
                 </>
               )}
               <label>อีเมล<input type="email" name="email" required placeholder="name@school.ac.th" autoComplete="email" /></label>

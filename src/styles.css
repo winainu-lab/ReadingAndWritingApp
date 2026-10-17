@@ -760,3 +760,11 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
 .learn-count strong { color: #4c2e12; font-size: 1.2rem; }
 .learn-hint { margin: 0; color: var(--muted); font-size: .86rem; }
 .learn-hint--center { text-align: center; }
+
+/* Registration code, account editing */
+.field-hint { display: block; margin-top: 4px; color: var(--muted); font-weight: 400; }
+.registration-code-card { max-width: 980px; margin-bottom: 18px; }
+.registration-code-card__row { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 16px; }
+.registration-code-card__row label:not(.learn-toggle) { flex: 1; min-width: 200px; }
+.registration-code-card__row input:not([type='checkbox']) { font-family: ui-monospace, Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; }
+.user-row-actions { display: flex; align-items: center; gap: 8px; }

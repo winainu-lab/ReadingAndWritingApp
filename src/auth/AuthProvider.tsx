@@ -10,6 +10,7 @@ interface SignUpInput {
   fullName: string
   schoolId?: string
   requestedRole: 'teacher' | 'supervisor'
+  registrationCode?: string
 }
 
 interface AuthContextValue {
@@ -19,7 +20,7 @@ interface AuthContextValue {
   loading: boolean
   refreshProfile: () => Promise<void>
   signIn: (email: string, password: string) => Promise<string | null>
-  signUp: (input: SignUpInput) => Promise<string | null>
+  signUp: (input: SignUpInput) => Promise<{ error: string | null; approved: boolean }>
   signOut: () => Promise<void>
 }
 
@@ -76,13 +77,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         return error?.message ?? null
       },
-      signUp: async ({ email, password, fullName, schoolId, requestedRole }) => {
+      signUp: async ({ email, password, fullName, schoolId, requestedRole, registrationCode }) => {
+        const code = requestedRole === 'teacher' ? registrationCode?.trim() ?? '' : ''
+        if (code) {
+          const { data: valid, error: checkError } = await supabase.rpc('check_registration_code', { p_code: code })
+          if (checkError) return { error: checkError.message, approved: false }
+          if (!valid) return { error: 'รหัสสมัครไม่ถูกต้องหรือปิดใช้งานอยู่ หากไม่มีรหัสให้เว้นว่างไว้แล้วรอผู้ดูแลอนุมัติ', approved: false }
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName, school_id: schoolId ?? '', requested_role: requestedRole } },
+          options: { data: { full_name: fullName, school_id: schoolId ?? '', requested_role: requestedRole, registration_code: code } },
         })
-        return error?.message ?? null
+        return { error: error?.message ?? null, approved: !error && Boolean(code) }
       },
       signOut: async () => {
         await supabase.auth.signOut()
