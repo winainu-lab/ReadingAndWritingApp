@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/AuthProvider'
 import { AppShell } from './components/AppShell'
 import { LoadingState } from './components/ui'
+import { useVisitTracking, type VisitPage } from './hooks/useVisitTracking'
 import { LoginPage } from './pages/LoginPage'
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
@@ -57,6 +58,8 @@ function ProtectedApp() {
 export function App() {
   const location = useLocation()
   const { session, loading } = useAuth()
+  const visitPage: VisitPage | null = location.pathname === '/learn' ? 'learn' : location.pathname === '/learning-resources' ? 'resources' : loading ? null : session ? 'app' : 'landing'
+  useVisitTracking(visitPage)
   if (location.pathname === '/learning-resources') {
     return <Suspense fallback={<LoadingState label="กำลังเปิดคลังเอกสาร" />}><LearningResourcesPage /></Suspense>
   }

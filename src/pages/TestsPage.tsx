@@ -6,7 +6,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { Button, EmptyState, LoadingState, Modal, Notice, PageHeader } from '../components/ui'
 import { formatWindow, fromLocalInput, getTestStatus, testStatusLabels, toLocalInput } from '../lib/testAvailability'
 import { supabase } from '../lib/supabase'
-import type { Skill, TestTemplate } from '../types/app'
+import type { NetworkCenter, Skill, TestTemplate } from '../types/app'
 
 interface SkillPick { skillId: string; count: number }
 
@@ -18,6 +18,8 @@ interface TestPayload {
   isPublished: boolean
   availableFrom: string | null
   availableUntil: string | null
+  targetDistricts: string[]
+  targetNetworks: string[]
 }
 
 type Tab = 'own' | 'central'
@@ -35,6 +37,7 @@ export function TestsPage() {
   const [message, setMessage] = useState<string | null>(null)
 
   const skills = useQuery({ queryKey: ['skills'], queryFn: async () => { const { data, error } = await supabase.from('skills').select('*').order('sort_order'); if (error) throw error; return data as Skill[] } })
+  const networks = useQuery({ queryKey: ['network-centers'], queryFn: async () => { const { data, error } = await supabase.from('network_centers').select('*').order('sort_order'); if (error) throw error; return data as NetworkCenter[] } })
   const tests = useQuery({ queryKey: ['test-templates'], queryFn: async () => { const { data, error } = await supabase.from('test_templates').select('*, skill:skills(name), school:schools(name)').is('archived_at', null).order('created_at', { ascending: false }); if (error) throw error; return data as unknown as TestTemplate[] } })
 
   const visibleTests = useMemo(() => (tests.data ?? []).filter((test) => {
@@ -52,11 +55,11 @@ export function TestsPage() {
   const skillsJson = (picks: SkillPick[] | null) => picks ? picks.map((pick) => ({ skill_id: pick.skillId, count: pick.count })) : null
 
   const createTest = useMutation({
-    mutationFn: async (payload: TestPayload) => { const { error } = await supabase.rpc('create_test_template_mixed', { p_title: payload.title, p_description: payload.description, p_duration_seconds: payload.duration, p_skills: skillsJson(payload.skills) as never, p_is_published: payload.isPublished, p_available_from: payload.availableFrom as string, p_available_until: payload.availableUntil as string }); if (error) throw error },
+    mutationFn: async (payload: TestPayload) => { const { error } = await supabase.rpc('create_test_template_mixed', { p_title: payload.title, p_description: payload.description, p_duration_seconds: payload.duration, p_skills: skillsJson(payload.skills) as never, p_is_published: payload.isPublished, p_available_from: payload.availableFrom as string, p_available_until: payload.availableUntil as string, p_target_districts: payload.targetDistricts, p_target_networks: payload.targetNetworks }); if (error) throw error },
     onSuccess: async () => { await invalidateTests(); setShowCreate(false); setMessage('สร้างแบบทดสอบและสุ่มรายการคำเรียบร้อย') },
   })
   const updateTest = useMutation({
-    mutationFn: async ({ id, payload }: { id: string; payload: TestPayload }) => { const { error } = await supabase.rpc('update_test_template_mixed', { p_test_id: id, p_title: payload.title, p_description: payload.description, p_duration_seconds: payload.duration, p_skills: skillsJson(payload.skills) as never, p_is_published: payload.isPublished, p_available_from: payload.availableFrom as string, p_available_until: payload.availableUntil as string }); if (error) throw error },
+    mutationFn: async ({ id, payload }: { id: string; payload: TestPayload }) => { const { error } = await supabase.rpc('update_test_template_mixed', { p_test_id: id, p_title: payload.title, p_description: payload.description, p_duration_seconds: payload.duration, p_skills: skillsJson(payload.skills) as never, p_is_published: payload.isPublished, p_available_from: payload.availableFrom as string, p_available_until: payload.availableUntil as string, p_target_districts: payload.targetDistricts, p_target_networks: payload.targetNetworks }); if (error) throw error },
     onSuccess: async () => { await invalidateTests(); setEditingTest(null); setMessage('บันทึกการแก้ไขแบบทดสอบแล้ว') },
   })
   const archiveTest = useMutation({
@@ -90,6 +93,7 @@ export function TestsPage() {
         <p className="eyebrow">{test.skill?.name ?? 'ผสมหลายทักษะ'}{test.scope === 'school' && test.school?.name ? ` · ${test.school.name}` : ''}</p><h2>{test.title}</h2><p>{test.description || 'แบบทดสอบสำหรับประเมินรายบุคคล'}</p>
         <div className="test-card__meta"><span><Sparkles size={17} /> {test.item_count} ข้อ</span><span><Clock3 size={17} /> {Math.round(test.duration_seconds / 60)} นาที</span></div>
         {test.scope === 'central' && <p className="test-card__window"><CalendarClock size={16} /> {formatWindow(test)}</p>}
+        {test.scope === 'central' && isManager && <p className="test-card__window"><School size={16} /> {describeAudience(test, networks.data ?? [])}</p>}
         {test.scope === 'school' && !isManager && <p className="test-card__window"><School size={16} /> ใช้ได้เฉพาะโรงเรียนของท่าน</p>}
         <div className="test-card__actions">
           {!isManager && status === 'open' && <Link className="button button--primary" to="/assessment"><Play size={16} /> เริ่มทดสอบ</Link>}
@@ -98,8 +102,8 @@ export function TestsPage() {
       </article>
     })}</section> : <EmptyState icon={<BookOpenCheck />} title="ยังไม่มีแบบทดสอบ" description={emptyDescription} />}
 
-    {showCreate && <Modal title={canWriteCentral ? 'สร้างแบบทดสอบส่วนกลาง' : 'สร้างแบบอ่านของโรงเรียน'} onClose={() => setShowCreate(false)}><TestForm skills={skills.data ?? []} central={canWriteCentral} busy={createTest.isPending} error={createTest.error?.message} onSubmit={(payload) => createTest.mutate(payload)} onCancel={() => setShowCreate(false)} /></Modal>}
-    {editingTest && <Modal title="แก้ไขแบบทดสอบ" onClose={() => setEditingTest(null)}><TestForm skills={skills.data ?? []} central={editingTest.scope === 'central'} test={editingTest} busy={updateTest.isPending} error={updateTest.error?.message} onSubmit={(payload) => updateTest.mutate({ id: editingTest.id, payload })} onCancel={() => setEditingTest(null)} /></Modal>}
+    {showCreate && <Modal title={canWriteCentral ? 'สร้างแบบทดสอบส่วนกลาง' : 'สร้างแบบอ่านของโรงเรียน'} onClose={() => setShowCreate(false)}><TestForm skills={skills.data ?? []} networks={networks.data ?? []} central={canWriteCentral} busy={createTest.isPending} error={createTest.error?.message} onSubmit={(payload) => createTest.mutate(payload)} onCancel={() => setShowCreate(false)} /></Modal>}
+    {editingTest && <Modal title="แก้ไขแบบทดสอบ" onClose={() => setEditingTest(null)}><TestForm skills={skills.data ?? []} networks={networks.data ?? []} central={editingTest.scope === 'central'} test={editingTest} busy={updateTest.isPending} error={updateTest.error?.message} onSubmit={(payload) => updateTest.mutate({ id: editingTest.id, payload })} onCancel={() => setEditingTest(null)} /></Modal>}
     {deleteTarget && <Modal title="ยืนยันลบแบบทดสอบ" onClose={() => setDeleteTarget(null)}><div className="confirm-dialog">
       {archiveTest.error && <Notice tone="error">{archiveTest.error.message}</Notice>}
       <div className="confirm-dialog__icon"><Trash2 /></div><p>ต้องการลบ <strong>{deleteTarget.title}</strong> ออกจากรายการหรือไม่?</p><small>แบบทดสอบจะไม่ถูกนำไปใช้ใหม่ แต่รายงานและผลประเมินเดิมจะไม่สูญหาย</small>
@@ -108,10 +112,22 @@ export function TestsPage() {
   </>
 }
 
-function TestForm({ skills, central, test, busy, error, onSubmit, onCancel }: { skills: Skill[]; central: boolean; test?: TestTemplate; busy: boolean; error?: string; onSubmit: (payload: TestPayload) => void; onCancel: () => void }) {
+function describeAudience(test: TestTemplate, networks: NetworkCenter[]) {
+  const districtNames = test.target_districts ?? []
+  const networkNames = (test.target_network_ids ?? []).map((id) => networks.find((entry) => entry.id === id)?.name).filter(Boolean)
+  if (!districtNames.length && !networkNames.length) return 'เปิดให้ทุกโรงเรียน'
+  return `เฉพาะ ${[...districtNames.map((name) => `อำเภอ${name}`), ...networkNames.map((name) => `ศูนย์${name}`)].join(', ')}`
+}
+
+function TestForm({ skills, networks, central, test, busy, error, onSubmit, onCancel }: { skills: Skill[]; networks: NetworkCenter[]; central: boolean; test?: TestTemplate; busy: boolean; error?: string; onSubmit: (payload: TestPayload) => void; onCancel: () => void }) {
   const [picks, setPicks] = useState<SkillPick[]>([{ skillId: test?.skill_id ?? '', count: test?.skill_id ? test.item_count : 10 }])
   const [replaceWords, setReplaceWords] = useState(!test)
   const [localError, setLocalError] = useState<string | null>(null)
+  const [audience, setAudience] = useState<'all' | 'selected'>(test && (test.target_districts?.length || test.target_network_ids?.length) ? 'selected' : 'all')
+  const [targetDistricts, setTargetDistricts] = useState<string[]>(test?.target_districts ?? [])
+  const [targetNetworks, setTargetNetworks] = useState<string[]>(test?.target_network_ids ?? [])
+  const districtNames = useMemo(() => [...new Set(networks.map((entry) => entry.district_name))], [networks])
+  const toggle = (list: string[], value: string) => list.includes(value) ? list.filter((item) => item !== value) : [...list, value]
   const total = picks.reduce((sum, pick) => sum + (pick.skillId ? pick.count : 0), 0)
   const levels = useMemo(() => [...new Set(skills.map((skill) => skill.level_code))], [skills])
   const updatePick = (index: number, change: Partial<SkillPick>) => setPicks((value) => value.map((pick, position) => position === index ? { ...pick, ...change } : pick))
@@ -128,10 +144,12 @@ function TestForm({ skills, central, test, busy, error, onSubmit, onCancel }: { 
     const from = fromLocalInput(String(form.get('availableFrom') ?? ''))
     const until = fromLocalInput(String(form.get('availableUntil') ?? ''))
     if (from && until && new Date(until) <= new Date(from)) return setLocalError('เวลาสิ้นสุดต้องหลังเวลาเริ่ม')
+    if (central && audience === 'selected' && !targetDistricts.length && !targetNetworks.length) return setLocalError('เลือกอำเภอหรือศูนย์เครือข่ายอย่างน้อย 1 รายการ หรือเลือก "ทุกโรงเรียน"')
     setLocalError(null)
     onSubmit({
       title: String(form.get('title')), description: String(form.get('description')), duration: Number(form.get('minutes')) * 60,
       skills: replaceWords ? chosen : null, isPublished: central ? form.get('published') === 'on' : true, availableFrom: central ? from : null, availableUntil: central ? until : null,
+      targetDistricts: central && audience === 'selected' ? targetDistricts : [], targetNetworks: central && audience === 'selected' ? targetNetworks : [],
     })
   }
 
@@ -158,6 +176,20 @@ function TestForm({ skills, central, test, busy, error, onSubmit, onCancel }: { 
       <label className="checkbox-field"><input name="published" type="checkbox" defaultChecked={test?.is_published ?? true} /><span><strong>ให้ครูเห็นและใช้ได้</strong><small>ปิดไว้ = ฉบับร่าง ครูมองไม่เห็น</small></span></label>
       <label>เริ่มให้ทดสอบ (ไม่บังคับ)<input name="availableFrom" type="datetime-local" defaultValue={toLocalInput(test?.available_from ?? null)} /></label>
       <label>สิ้นสุดการทดสอบ (ไม่บังคับ)<input name="availableUntil" type="datetime-local" defaultValue={toLocalInput(test?.available_until ?? null)} /></label>
+      <div className="form-grid__full audience-picker">
+        <strong>โรงเรียนที่ทดสอบได้</strong>
+        <div className="learn-segment" role="radiogroup" aria-label="ผู้ที่ทดสอบได้">
+          <button type="button" role="radio" aria-checked={audience === 'all'} className={audience === 'all' ? 'active' : ''} onClick={() => setAudience('all')}>ทุกโรงเรียนในเขต</button>
+          <button type="button" role="radio" aria-checked={audience === 'selected'} className={audience === 'selected' ? 'active' : ''} onClick={() => setAudience('selected')}>เลือกเฉพาะอำเภอ / ศูนย์เครือข่าย</button>
+        </div>
+        {audience === 'selected' && <>
+          <p className="learn-hint">เลือกอำเภอ เพื่อรวมทุกศูนย์ในอำเภอนั้น หรือเลือกเฉพาะบางศูนย์เครือข่าย (เลือกผสมกันได้)</p>
+          {districtNames.map((name) => <div className="audience-picker__group" key={name}>
+            <button type="button" aria-pressed={targetDistricts.includes(name)} className={targetDistricts.includes(name) ? 'audience-chip audience-chip--district active' : 'audience-chip audience-chip--district'} onClick={() => setTargetDistricts((value) => toggle(value, name))}>อำเภอ{name}</button>
+            {networks.filter((entry) => entry.district_name === name).map((entry) => <button type="button" key={entry.id} aria-pressed={targetNetworks.includes(entry.id)} className={targetNetworks.includes(entry.id) ? 'audience-chip active' : 'audience-chip'} onClick={() => setTargetNetworks((value) => toggle(value, entry.id))}>{entry.name}</button>)}
+          </div>)}
+        </>}
+      </div>
       <div className="form-grid__full info-callout"><CalendarClock size={20} /><span>ถ้ากำหนดช่วงเวลา ครูจะเริ่มทดสอบได้เฉพาะในช่วงนั้น ระบบตรวจฝั่งเซิร์ฟเวอร์ด้วย ไม่เว้นว่างเท่ากับเปิดตลอดเวลา</span></div>
     </>}
     {!central && <div className="form-grid__full info-callout"><School size={20} /><span>แบบอ่านนี้ใช้ได้เฉพาะโรงเรียนของท่าน และผลประเมินจะนับรวมในภาพรวมของโรงเรียนท่านเท่านั้น</span></div>}

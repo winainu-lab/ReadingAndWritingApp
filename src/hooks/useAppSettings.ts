@@ -11,6 +11,7 @@ export const defaultAppSettings: AppSettings = {
   welcome_headline: 'เห็นพัฒนาการอ่าน จากทุกห้องเรียน',
   welcome_description: 'ประเมินแบบไม่ใช้ข้อมูลส่วนตัว สรุปผลระดับโรงเรียน ศูนย์เครือข่าย และเขตพื้นที่ในที่เดียว',
   logo_path: null,
+  manual_url: null,
   updated_at: '',
   updated_by: null,
 }

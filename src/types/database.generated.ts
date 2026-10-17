@@ -16,6 +16,7 @@ export type Database = {
           id: string
           landing_kicker: string
           logo_path: string | null
+          manual_url: string | null
           system_name: string
           updated_at: string
           updated_by: string | null
@@ -28,6 +29,7 @@ export type Database = {
           id?: string
           landing_kicker?: string
           logo_path?: string | null
+          manual_url?: string | null
           system_name?: string
           updated_at?: string
           updated_by?: string | null
@@ -40,6 +42,7 @@ export type Database = {
           id?: string
           landing_kicker?: string
           logo_path?: string | null
+          manual_url?: string | null
           system_name?: string
           updated_at?: string
           updated_by?: string | null
@@ -439,6 +442,27 @@ export type Database = {
           },
         ]
       }
+      site_visit_stats: {
+        Row: {
+          day: string
+          new_visitors: number
+          page: string
+          visits: number
+        }
+        Insert: {
+          day: string
+          new_visitors?: number
+          page: string
+          visits?: number
+        }
+        Update: {
+          day?: string
+          new_visitors?: number
+          page?: string
+          visits?: number
+        }
+        Relationships: []
+      }
       skills: {
         Row: {
           code: string
@@ -564,6 +588,8 @@ export type Database = {
           school_id: string | null
           scope: string
           skill_id: string | null
+          target_districts: string[] | null
+          target_network_ids: string[] | null
           title: string
           updated_at: string
         }
@@ -581,6 +607,8 @@ export type Database = {
           school_id?: string | null
           scope?: string
           skill_id?: string | null
+          target_districts?: string[] | null
+          target_network_ids?: string[] | null
           title: string
           updated_at?: string
         }
@@ -598,6 +626,8 @@ export type Database = {
           school_id?: string | null
           scope?: string
           skill_id?: string | null
+          target_districts?: string[] | null
+          target_network_ids?: string[] | null
           title?: string
           updated_at?: string
         }
@@ -768,6 +798,8 @@ export type Database = {
           p_duration_seconds: number
           p_is_published?: boolean
           p_skills: Json
+          p_target_districts?: string[]
+          p_target_networks?: string[]
           p_title: string
         }
         Returns: string
@@ -781,7 +813,10 @@ export type Database = {
         Args: { p_skills: Json; p_test_id: string }
         Returns: number
       }
-      get_dashboard_summary: { Args: never; Returns: Json }
+      get_dashboard_summary: {
+        Args: { p_district?: string; p_network?: string; p_school?: string }
+        Returns: Json
+      }
       get_network_report: {
         Args: never
         Returns: {
@@ -823,7 +858,28 @@ export type Database = {
           student_count: number
         }[]
       }
+      get_user_activity: { Args: never; Returns: Json }
+      get_visit_stats: {
+        Args: { p_days?: number }
+        Returns: {
+          day: string
+          new_visitors: number
+          page: string
+          visits: number
+        }[]
+      }
+      record_visit: {
+        Args: { p_new_visitor?: boolean; p_page: string }
+        Returns: undefined
+      }
       registration_code_matches: { Args: { p_code: string }; Returns: boolean }
+      test_targets_school: {
+        Args: {
+          p_school_id: string
+          p_test: Database["public"]["Tables"]["test_templates"]["Row"]
+        }
+        Returns: boolean
+      }
       update_test_template_from_skill: {
         Args: {
           p_description: string
@@ -844,6 +900,8 @@ export type Database = {
           p_duration_seconds: number
           p_is_published?: boolean
           p_skills: Json
+          p_target_districts?: string[]
+          p_target_networks?: string[]
           p_test_id: string
           p_title: string
         }

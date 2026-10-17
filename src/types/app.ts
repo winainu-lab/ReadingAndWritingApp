@@ -74,6 +74,8 @@ export interface TestTemplate {
   school_id: string | null
   available_from: string | null
   available_until: string | null
+  target_districts: string[] | null
+  target_network_ids: string[] | null
   skill?: { name: string } | null
   school?: { name: string } | null
 }
@@ -120,6 +122,7 @@ export interface AppSettings {
   welcome_headline: string
   welcome_description: string
   logo_path: string | null
+  manual_url: string | null
   updated_at: string
   updated_by: string | null
 }

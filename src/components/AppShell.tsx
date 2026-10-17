@@ -18,6 +18,7 @@ import type { LucideIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
+import { ManualButton } from './ManualModal'
 import { useWebMcpTools } from '../hooks/useWebMcpTools'
 import { getBrandLogoUrl, useAppSettings } from '../hooks/useAppSettings'
 
@@ -70,6 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </>
           )}
         </nav>
+        <div className="sidebar__manual"><ManualButton className="manual-button--sidebar" /></div>
         <div className="sidebar__profile">
           <div className="avatar">{profile?.full_name?.slice(0, 1) || 'ค'}</div>
           <div><strong>{profile?.full_name}</strong><span><ShieldCheck size={14} /> {roleLabel}</span></div>
