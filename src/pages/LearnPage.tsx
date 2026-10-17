@@ -242,7 +242,7 @@ export function LearnPage() {
     </section>
     <section className="learn-setup">
       {skills.isLoading ? <LoadingState label="กำลังเตรียมทักษะ" /> : skills.error ? <EmptyState icon={<BookOpen />} title="โหลดทักษะไม่สำเร็จ" description="กรุณาลองใหม่อีกครั้ง" /> : <>
-        {levels.map(([level, items]) => <div className="learn-level" key={level}><h2>{level}</h2><div className="learn-skill-grid">{items.map((skill) => <button key={skill.id} className={skill.id === skillId ? 'learn-skill active' : 'learn-skill'} onClick={() => chooseSkill(skill.id)}><span>{skill.code}</span><strong>{skill.name}</strong></button>)}</div></div>)}
+        {levels.map(([level, items], index) => <section className={`learn-level learn-level--${index % 3}`} key={level}><header className="learn-level__header"><span className="learn-level__badge">{index + 1}</span><div><h2>{level}</h2><p>{items.length} ทักษะ · {items[0].code}–{items[items.length - 1].code}</p></div></header><div className="learn-skill-grid">{items.map((skill) => <button key={skill.id} className={skill.id === skillId ? 'learn-skill active' : 'learn-skill'} onClick={() => chooseSkill(skill.id)}><span>{skill.code}</span><strong>{skill.name}</strong></button>)}</div></section>)}
 
         {skillId && <div className="learn-panel">
           <h2>1 · เลือกคำ <small>{words.isLoading ? 'กำลังโหลด…' : `ในคลังมี ${(words.data ?? []).length} คำ${candidates.length !== (words.data ?? []).length ? ` (ตรงตัวกรอง ${candidates.length} คำ)` : ''}`}</small></h2>

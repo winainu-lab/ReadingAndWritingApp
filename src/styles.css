@@ -713,7 +713,19 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
 .learn-toggle { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
 .learn-toggle input { width: auto; min-height: 0; }
 .learn-setup { max-width: 1040px; margin: 0 auto; padding: 8px clamp(16px, 4vw, 40px) clamp(40px, 6vw, 80px); display: grid; gap: 22px; }
-.learn-level h2 { margin: 0 0 10px; color: #6a4313; font-size: 1.05rem; }
+/* Each stage of the textbook gets its own card */
+.learn-level { --level-bg: #fff7dc; --level-line: #ecd48a; --level-accent: #b07a14; display: grid; gap: 14px; padding: 18px; background: var(--level-bg); border: 1px solid var(--level-line); border-radius: 22px; box-shadow: 0 10px 28px rgba(81,50,9,.08); }
+.learn-level--1 { --level-bg: #eef6ec; --level-line: #bfdab9; --level-accent: #3f7d4a; }
+.learn-level--2 { --level-bg: #fbeee6; --level-line: #efc7b0; --level-accent: #b0582a; }
+.learn-level__header { display: flex; align-items: center; gap: 12px; }
+.learn-level__badge { width: 40px; height: 40px; flex: none; display: grid; place-items: center; color: #fff; background: var(--level-accent); border-radius: 13px; font-weight: 700; font-size: 1.1rem; }
+.learn-level__header h2 { margin: 0; color: #4c2e12; font-size: 1.2rem; line-height: 1.3; }
+.learn-level__header p { margin: 0; color: var(--muted); font-size: .8rem; }
+.learn-level .learn-skill { background: #fff; }
+.learn-level .learn-skill.active { background: var(--level-accent); border-color: var(--level-accent); }
+.learn-level .learn-skill.active span { color: #fff4d0; }
+.learn-page .resource-library__hero h1 { line-height: 1.35; margin: 4px 0 14px; padding-top: 4px; }
+.learn-page .resource-library__hero { padding-bottom: 26px; }
 .learn-skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .learn-skill { display: grid; gap: 4px; padding: 13px 15px; text-align: left; color: #5b3a12; background: #fffaf0; border: 1px solid #ead8a8; border-radius: 14px; transition: transform .15s ease, box-shadow .15s ease; }
 .learn-skill:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(81,50,9,.14); }
