@@ -768,3 +768,11 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
 .registration-code-card__row label:not(.learn-toggle) { flex: 1; min-width: 200px; }
 .registration-code-card__row input:not([type='checkbox']) { font-family: ui-monospace, Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; }
 .user-row-actions { display: flex; align-items: center; gap: 8px; }
+
+/* Central and school tests */
+.tests-tabs { margin-bottom: 16px; }
+.test-card__window { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; color: var(--muted); font-size: .82rem; }
+.skill-mixer { display: grid; gap: 10px; padding: 14px; background: #fffaf0; border: 1px solid #ead8a8; border-radius: 14px; }
+.skill-mixer__head, .skill-mixer__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.skill-mixer__row { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto auto; align-items: center; gap: 8px; }
+.skill-mixer__row select, .skill-mixer__row input { margin: 0; }

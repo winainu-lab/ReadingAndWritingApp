@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { Button, Notice, PageHeader } from '../components/ui'
 import { calculateAssessmentResult, type AssessmentOutcome } from '../lib/assessment'
 import { supabase } from '../lib/supabase'
+import { getTestStatus } from '../lib/testAvailability'
 import type { Classroom, Student, TestItem, TestTemplate } from '../types/app'
 
 export function AssessmentPage() {
@@ -30,7 +31,10 @@ export function AssessmentPage() {
 
   const selectedClass = classrooms.data?.find((entry) => entry.id === classroomId)
   const selectedStudent = students.data?.find((entry) => entry.id === studentId)
-  const selectedTest = tests.data?.find((entry) => entry.id === testId)
+  const availableTests = useMemo(() => (tests.data ?? []).filter((entry) => entry.scope === 'central' ? getTestStatus(entry) === 'open' : entry.school_id === selectedClass?.school_id), [tests.data, selectedClass?.school_id])
+  const centralTests = availableTests.filter((entry) => entry.scope === 'central')
+  const schoolTests = availableTests.filter((entry) => entry.scope === 'school')
+  const selectedTest = availableTests.find((entry) => entry.id === testId)
   const testItems = items.data ?? []
 
   const finish = useMutation({
@@ -91,9 +95,9 @@ export function AssessmentPage() {
     {finish.error && <Notice tone="error">{finish.error.message}</Notice>}
     {completed && <section className="result-banner"><CheckCircle2 /><div><p>บันทึกผลเรียบร้อย</p><strong>{completed.score}/{completed.total} คำ · ความถูกต้อง {completed.accuracy.toFixed(0)}%</strong></div><Button variant="secondary" onClick={() => setCompleted(null)}>ทดสอบคนถัดไป</Button></section>}
     <section className="assessment-setup">
-      <div className="assessment-step"><span>1</span><div><h2>เลือกห้องเรียน</h2><select value={classroomId} onChange={(event) => { setClassroomId(event.target.value); setStudentId('') }}><option value="">เลือกห้อง</option>{classrooms.data?.map((entry) => <option key={entry.id} value={entry.id}>{entry.school?.name} · {entry.grade_level}/{entry.room_label}</option>)}</select></div></div>
+      <div className="assessment-step"><span>1</span><div><h2>เลือกห้องเรียน</h2><select value={classroomId} onChange={(event) => { setClassroomId(event.target.value); setStudentId(''); setTestId('') }}><option value="">เลือกห้อง</option>{classrooms.data?.map((entry) => <option key={entry.id} value={entry.id}>{entry.school?.name} · {entry.grade_level}/{entry.room_label}</option>)}</select></div></div>
       <div className={`assessment-step ${!classroomId ? 'assessment-step--disabled' : ''}`}><span>2</span><div><h2>เลือกนักเรียน</h2><select value={studentId} onChange={(event) => setStudentId(event.target.value)} disabled={!classroomId}><option value="">เลือกนักเรียน</option>{students.data?.map((entry) => <option key={entry.id} value={entry.id}>เลขที่ {entry.student_no} · {entry.display_name}</option>)}</select></div></div>
-      <div className={`assessment-step ${!studentId ? 'assessment-step--disabled' : ''}`}><span>3</span><div><h2>เลือกแบบทดสอบ</h2><select value={testId} onChange={(event) => setTestId(event.target.value)} disabled={!studentId}><option value="">เลือกแบบทดสอบ</option>{tests.data?.map((entry) => <option key={entry.id} value={entry.id}>{entry.title} · {Math.round(entry.duration_seconds / 60)} นาที</option>)}</select></div></div>
+      <div className={`assessment-step ${!studentId ? 'assessment-step--disabled' : ''}`}><span>3</span><div><h2>เลือกแบบทดสอบ</h2><select value={testId} onChange={(event) => setTestId(event.target.value)} disabled={!studentId}><option value="">เลือกแบบทดสอบ</option>{centralTests.length > 0 && <optgroup label="ส่วนกลางจากเขต">{centralTests.map((entry) => <option key={entry.id} value={entry.id}>{entry.title} · {Math.round(entry.duration_seconds / 60)} นาที</option>)}</optgroup>}{schoolTests.length > 0 && <optgroup label="แบบอ่านของโรงเรียน">{schoolTests.map((entry) => <option key={entry.id} value={entry.id}>{entry.title} · {Math.round(entry.duration_seconds / 60)} นาที</option>)}</optgroup>}</select></div></div>
       <div className="assessment-summary"><div><small>พร้อมทดสอบ</small><strong>{selectedStudent?.display_name ?? '–'}</strong><span>{selectedTest ? `${selectedTest.title} · ${selectedTest.item_count} ข้อ` : 'เลือกข้อมูลให้ครบ'}</span></div><Button disabled={!studentId || !testId || items.isLoading || !testItems.length} onClick={begin}><Play size={20} /> เริ่มจับเวลา</Button></div>
     </section>
   </>

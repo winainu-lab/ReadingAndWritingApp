@@ -70,7 +70,12 @@ export interface TestTemplate {
   skill_id: string | null
   created_by: string | null
   archived_at: string | null
+  scope: 'central' | 'school'
+  school_id: string | null
+  available_from: string | null
+  available_until: string | null
   skill?: { name: string } | null
+  school?: { name: string } | null
 }
 
 export interface VocabularyWord {

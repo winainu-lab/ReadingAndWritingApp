@@ -552,6 +552,8 @@ export type Database = {
       test_templates: {
         Row: {
           archived_at: string | null
+          available_from: string | null
+          available_until: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -559,12 +561,16 @@ export type Database = {
           id: string
           is_published: boolean
           item_count: number
+          school_id: string | null
+          scope: string
           skill_id: string | null
           title: string
           updated_at: string
         }
         Insert: {
           archived_at?: string | null
+          available_from?: string | null
+          available_until?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -572,12 +578,16 @@ export type Database = {
           id?: string
           is_published?: boolean
           item_count?: number
+          school_id?: string | null
+          scope?: string
           skill_id?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           archived_at?: string | null
+          available_from?: string | null
+          available_until?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -585,6 +595,8 @@ export type Database = {
           id?: string
           is_published?: boolean
           item_count?: number
+          school_id?: string | null
+          scope?: string
           skill_id?: string | null
           title?: string
           updated_at?: string
@@ -595,6 +607,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_templates_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
           {
@@ -716,6 +735,10 @@ export type Database = {
         Args: { target_school_id: string }
         Returns: boolean
       }
+      can_take_test: {
+        Args: { p_started_at?: string; p_test_id: string }
+        Returns: boolean
+      }
       check_registration_code: { Args: { p_code: string }; Returns: boolean }
       create_classroom_with_students: {
         Args: {
@@ -737,11 +760,27 @@ export type Database = {
         }
         Returns: string
       }
+      create_test_template_mixed: {
+        Args: {
+          p_available_from?: string
+          p_available_until?: string
+          p_description: string
+          p_duration_seconds: number
+          p_is_published?: boolean
+          p_skills: Json
+          p_title: string
+        }
+        Returns: string
+      }
       current_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
       current_school_id: { Args: never; Returns: string }
+      fill_test_template_items: {
+        Args: { p_skills: Json; p_test_id: string }
+        Returns: number
+      }
       get_dashboard_summary: { Args: never; Returns: Json }
       get_network_report: {
         Args: never
@@ -783,6 +822,20 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_test_template_mixed: {
+        Args: {
+          p_available_from?: string
+          p_available_until?: string
+          p_description: string
+          p_duration_seconds: number
+          p_is_published?: boolean
+          p_skills: Json
+          p_test_id: string
+          p_title: string
+        }
+        Returns: undefined
+      }
+      validate_test_skills: { Args: { p_skills: Json }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "supervisor" | "teacher"
