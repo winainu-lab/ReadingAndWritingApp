@@ -15,6 +15,7 @@ const VocabularyPage = lazy(() => import('./pages/VocabularyPage').then((module)
 const UsersPage = lazy(() => import('./pages/UsersPage').then((module) => ({ default: module.UsersPage })))
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })))
 const LearningResourcesPage = lazy(() => import('./pages/LearningResourcesPage').then((module) => ({ default: module.LearningResourcesPage })))
+const LearnPage = lazy(() => import('./pages/LearnPage').then((module) => ({ default: module.LearnPage })))
 const ResourcesAdminPage = lazy(() => import('./pages/ResourcesAdminPage').then((module) => ({ default: module.ResourcesAdminPage })))
 
 function ProtectedApp() {
@@ -58,6 +59,9 @@ export function App() {
   const { session, loading } = useAuth()
   if (location.pathname === '/learning-resources') {
     return <Suspense fallback={<LoadingState label="กำลังเปิดคลังเอกสาร" />}><LearningResourcesPage /></Suspense>
+  }
+  if (location.pathname === '/learn') {
+    return <Suspense fallback={<LoadingState label="กำลังเปิดโหมดเรียนรู้" />}><LearnPage /></Suspense>
   }
   if (loading) return <LoadingState label="กำลังเปิดระบบอ่านคล่อง" />
   if (!session) return <LoginPage />

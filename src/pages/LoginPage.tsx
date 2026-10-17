@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, BookOpenCheck, BookOpenText, Download, Eye, EyeOff, LogIn, MapPinned, School, ShieldCheck, UserPlus, X } from 'lucide-react'
+import { ArrowRight, BookOpenCheck, BookOpenText, Download, GraduationCap, Eye, EyeOff, LogIn, MapPinned, School, ShieldCheck, UserPlus, X } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
@@ -96,7 +96,10 @@ export function LoginPage() {
             <div><MapPinned /><strong>{networkCount || '–'}</strong><span>ศูนย์เครือข่าย</span></div>
             <div><ShieldCheck /><strong>ไม่ระบุตัวตน</strong><span>ไม่เก็บชื่อเด็ก</span></div>
           </div>
-          <Link className="landing-resources-button" to="/learning-resources"><BookOpenText size={20} /><span>ศึกษาเอกสารและใบความรู้</span><ArrowRight size={18} /></Link>
+          <div className="landing-shortcuts">
+            <Link className="landing-resources-button" to="/learn"><GraduationCap size={20} /><span>โหมดเรียนรู้ ฝึกอ่านได้ทันที</span><ArrowRight size={18} /></Link>
+            <Link className="landing-resources-button" to="/learning-resources"><BookOpenText size={20} /><span>ศึกษาเอกสารและใบความรู้</span><ArrowRight size={18} /></Link>
+          </div>
         </div>
 
         <footer className="landing-footer">
