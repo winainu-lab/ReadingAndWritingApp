@@ -87,7 +87,6 @@ export function LoginPage() {
     <main className="landing-page">
       <section className="landing-stage" aria-label={`${settings.system_name} ${settings.affiliation}`}>
         <img className="landing-characters" src="/thai-literature-characters-v3.png" alt="" aria-hidden="true" />
-        <div className="landing-topbar"><ManualButton /></div>
         <header className="landing-brand">
           <div className={logoUrl ? 'landing-logo landing-logo--uploaded' : 'landing-logo'}>{logoUrl ? <img src={logoUrl} alt={`โลโก้ ${settings.affiliation}`} /> : <BookOpenCheck />}</div>
           <div><strong>{settings.system_name}</strong><span>{settings.affiliation}</span><small className="landing-brand__office">{settings.footer_text}</small></div>
@@ -97,13 +96,6 @@ export function LoginPage() {
           <p className="landing-kicker"><MapPinned size={18} /> {settings.landing_kicker}</p>
           <h1>{settings.welcome_headline}</h1>
           <p>{settings.welcome_description}</p>
-          <div className="landing-action-stack landing-action-stack--hero">
-            <div className="landing-actions">
-              {installPrompt && <button className="landing-install" onClick={() => void installApp()}><Download size={19} /> ติดตั้งเป็นแอป</button>}
-              <button className="landing-register" onClick={() => openModal('register')}><UserPlus size={19} /> สมัครเป็นผู้ทดสอบ</button>
-              <button className="landing-login" onClick={() => openModal('login')}><LogIn size={19} /> เข้าสู่ระบบ <ArrowRight size={18} /></button>
-            </div>
-          </div>
           <div className="landing-facts" aria-label="ข้อมูลระบบ">
             <div><School /><strong>{schools.data?.length.toLocaleString('th-TH') ?? '–'}</strong><span>โรงเรียน</span></div>
             <div><MapPinned /><strong>{networkCount || '–'}</strong><span>ศูนย์เครือข่าย</span></div>
@@ -117,6 +109,14 @@ export function LoginPage() {
 
         <footer className="landing-footer">
           <div><strong>{settings.system_name}</strong><span>{settings.footer_text}</span></div>
+          <div className="landing-action-stack">
+            <div className="landing-actions">
+              {installPrompt && <button className="landing-install" onClick={() => void installApp()}><Download size={19} /> ติดตั้งเป็นแอป</button>}
+              <button className="landing-register" onClick={() => openModal('register')}><UserPlus size={19} /> สมัครเป็นผู้ทดสอบ</button>
+              <button className="landing-login" onClick={() => openModal('login')}><LogIn size={19} /> เข้าสู่ระบบ <ArrowRight size={18} /></button>
+            </div>
+            <ManualButton />
+          </div>
         </footer>
       </section>
 
