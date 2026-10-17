@@ -69,6 +69,7 @@ export function LearnPage() {
   const [paused, setPaused] = useState(false)
   const [remaining, setRemaining] = useState(0)
   const activeTimer = useRef<TimerMode>('none')
+  const settingsRef = useRef<HTMLDivElement>(null)
 
   const skills = useQuery({
     queryKey: ['public-skills'],
@@ -94,6 +95,7 @@ export function LearnPage() {
     return [...groups.entries()]
   }, [skills.data])
   const selectedSkill = skills.data?.find((skill) => skill.id === skillId)
+  const selectedLevelIndex = Math.max(0, levels.findIndex(([level]) => level === selectedSkill?.level_code))
   const candidates = useMemo(
     () => (words.data ?? []).filter((word) => syllables === 'all' || (syllables === '3' ? word.syllable_count >= 3 : word.syllable_count === Number(syllables))).sort((a, b) => a.display_text.localeCompare(b.display_text, 'th')),
     [words.data, syllables],
@@ -105,7 +107,11 @@ export function LearnPage() {
   const effectiveCount = clampNumber(wordCount, 1, Math.max(1, candidates.length))
   const sessionSize = selectionMode === 'manual' ? candidates.filter((word) => picked.has(word.id)).length : Math.min(effectiveCount, candidates.length)
 
-  const chooseSkill = (id: string) => { setSkillId(id); setPicked(new Set()); setPickSearch('') }
+  const chooseSkill = (id: string) => {
+    setSkillId(id); setPicked(new Set()); setPickSearch('')
+    // Bring the settings into view once they have rendered, so it is obvious what was selected.
+    window.setTimeout(() => settingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+  }
   const togglePick = (id: string) => setPicked((value) => { const next = new Set(value); if (next.has(id)) next.delete(id); else next.add(id); return next })
 
   const begin = (source: VocabularyWord[]) => {
@@ -244,6 +250,12 @@ export function LearnPage() {
       {skills.isLoading ? <LoadingState label="กำลังเตรียมทักษะ" /> : skills.error ? <EmptyState icon={<BookOpen />} title="โหลดทักษะไม่สำเร็จ" description="กรุณาลองใหม่อีกครั้ง" /> : <>
         {levels.map(([level, items], index) => <section className={`learn-level learn-level--${index % 3}`} key={level}><header className="learn-level__header"><span className="learn-level__badge">{index + 1}</span><div><h2>{level}</h2><p>{items.length} ทักษะ · {items[0].code}–{items[items.length - 1].code}</p></div></header><div className="learn-skill-grid">{items.map((skill) => <button key={skill.id} className={skill.id === skillId ? 'learn-skill active' : 'learn-skill'} onClick={() => chooseSkill(skill.id)}><span>{skill.code}</span><strong>{skill.name}</strong></button>)}</div></section>)}
 
+        {selectedSkill && <div ref={settingsRef} className={`learn-selected learn-level--${selectedLevelIndex % 3}`}>
+          <span className="learn-selected__badge">{selectedSkill.code}</span>
+          <div><small>ทักษะที่เลือก · {selectedSkill.level_code}</small><strong>{selectedSkill.name}</strong></div>
+          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>เปลี่ยนทักษะ</button>
+        </div>}
+
         {skillId && <div className="learn-panel">
           <h2>1 · เลือกคำ <small>{words.isLoading ? 'กำลังโหลด…' : `ในคลังมี ${(words.data ?? []).length} คำ${candidates.length !== (words.data ?? []).length ? ` (ตรงตัวกรอง ${candidates.length} คำ)` : ''}`}</small></h2>
           <div className="learn-options__row">
@@ -279,6 +291,7 @@ export function LearnPage() {
         </div>}
 
         {skillId && <div className="learn-options">
+          {selectedSkill && <p className="learn-options__skill"><strong>{selectedSkill.code}</strong> · {selectedSkill.name}</p>}
           <div className="learn-options__row">
             <label className="learn-toggle"><input type="checkbox" checked={shuffleWords} onChange={(event) => setShuffleWords(event.target.checked)} /> สลับลำดับคำ</label>
             <label className="learn-toggle"><input type="checkbox" checked={showPronunciation} onChange={(event) => setShowPronunciation(event.target.checked)} /> แสดงคำอ่าน</label>

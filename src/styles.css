@@ -835,3 +835,16 @@ input:focus, select:focus, textarea:focus { border-color: #c9972f; box-shadow: 0
 .audience-chip.active { color: #fff8e6; background: #805018; border-color: #805018; }
 .landing-visits { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: #ecd7a8; font-size: .76rem; letter-spacing: .01em; }
 .landing-visits strong { color: #fff4d0; font-weight: 700; }
+
+/* Selected skill banner in learning-mode setup */
+.learn-selected { --level-bg: #fff7dc; --level-line: #ecd48a; --level-accent: #b07a14; display: flex; align-items: center; gap: 14px; padding: 14px 18px; scroll-margin-top: 16px; background: var(--level-bg); border: 2px solid var(--level-accent); border-radius: 18px; }
+.learn-selected.learn-level--1 { --level-bg: #eef6ec; --level-line: #bfdab9; --level-accent: #3f7d4a; }
+.learn-selected.learn-level--2 { --level-bg: #fbeee6; --level-line: #efc7b0; --level-accent: #b0582a; }
+.learn-selected__badge { flex: none; padding: 8px 13px; color: #fff; background: var(--level-accent); border-radius: 12px; font-weight: 700; }
+.learn-selected > div { min-width: 0; flex: 1; }
+.learn-selected small { display: block; color: var(--muted); font-size: .76rem; }
+.learn-selected strong { display: block; color: #4c2e12; font-size: 1.12rem; line-height: 1.35; }
+.learn-selected button { flex: none; padding: 7px 13px; color: var(--level-accent); background: #fff; border: 1px solid var(--level-accent); border-radius: 999px; font-size: .82rem; font-weight: 600; }
+.learn-options__skill { margin: 0; color: var(--muted); font-size: .88rem; }
+.learn-options__skill strong { color: #4c2e12; }
+@media (max-width: 560px) { .learn-selected { flex-wrap: wrap; } .learn-selected button { width: 100%; } }
